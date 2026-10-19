@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador interactivo de autómatas finitos</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#ffffff;--blue:#2563eb;--blue-d:#1d4ed8;--sky:#38bdf8;--sky-l:#e0f2fe;
+  --blue-l:#dbeafe;--blue-xl:#eff6ff;--text:#1e293b;--muted:#64748b;--line:#dbe4f0;
+  --ok:#15803d;--okbg:#dcfce7;--bad:#b91c1c;--badbg:#fee2e2;--act:#d97706;--actbg:#fef3c7;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header.top{background:linear-gradient(135deg,#dbeafe 0%,#e0f2fe 100%);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;box-shadow:0 2px 8px rgba(30,64,120,.08)}
+.brand{display:flex;align-items:center;gap:12px;padding:10px 0 6px}
+.logo{width:42px;height:42px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700;letter-spacing:.5px;flex:none}
+.brand h1{font-size:1.15rem;margin:0;line-height:1.25}
+.brand p{margin:0;font-size:.82rem;color:#334155}
+nav.nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+nav.nav button{flex:none;border:1px solid #bfd3f2;background:#ffffffcc;color:#1e3a8a;padding:7px 12px;border-radius:999px;cursor:pointer;font-size:.88rem;font-family:inherit}
+nav.nav button:hover{background:#fff}
+nav.nav button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+main{padding:18px 0 50px}
+.module{display:none}
+.module.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(30,64,120,.05)}
+.card h2{margin:0 0 6px;font-size:1.4rem;color:#1e3a8a}
+.card h3{margin:0 0 10px;font-size:1.1rem;color:#1d4ed8}
+.card h4{margin:12px 0 4px;font-size:1rem}
+.lead{color:#334155;margin:4px 0 8px}
+.tag{display:inline-block;background:var(--blue-l);color:#1e3a8a;border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600;margin-bottom:6px}
+.obj{background:var(--blue-xl);border-left:4px solid var(--sky);padding:8px 12px;border-radius:8px;margin:8px 0}
+.defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.def{background:var(--blue-xl);border:1px solid #cfe0fb;border-radius:12px;padding:10px 12px}
+.def b{color:#1e3a8a}
+.def p{margin:3px 0 0;font-size:.93rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.btn{font-family:inherit;font-size:.92rem;border:1px solid #9db9e6;background:#fff;color:#1e3a8a;border-radius:10px;padding:8px 13px;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--blue-xl)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:var(--blue-d)}
+.btn.ghost{background:transparent}
+.btn.small{padding:5px 10px;font-size:.85rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+.inp{font-family:inherit;font-size:.95rem;padding:8px 10px;border:1px solid #b7c9e6;border-radius:10px;background:#fff;color:var(--text);min-width:0}
+.inp:focus{outline:2px solid var(--sky);border-color:var(--sky)}
+.inp.grow{flex:1;min-width:180px;font-family:Consolas,"Courier New",monospace;font-size:1.05rem;letter-spacing:.5px}
+textarea.inp{width:100%;font-family:Consolas,"Courier New",monospace;min-height:120px;resize:vertical}
+.lbl{font-weight:600;font-size:.9rem;color:#334155}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{font-family:Consolas,"Courier New",monospace;font-size:.88rem;border-radius:999px;padding:4px 11px;border:1px solid #b7c9e6;background:#fff;cursor:pointer}
+.chip.ok{border-color:#86d3a0;background:#f0fdf4}
+.chip.no{border-color:#f1a5a5;background:#fef2f2}
+.chip:hover{filter:brightness(.97)}
+.msg{border-radius:10px;padding:9px 12px;margin:8px 0;font-size:.93rem}
+.msg.err{background:var(--badbg);border:1px solid #f5b5b5;color:#7f1d1d}
+.msg.info{background:var(--blue-xl);border:1px solid #bfd6f8;color:#1e3a8a}
+.msg.okm{background:var(--okbg);border:1px solid #9bdcb0;color:#14532d}
+.msg ul{margin:4px 0 0 18px;padding:0}
+.result{border-radius:12px;padding:12px 14px;margin:10px 0}
+.result.ok{background:var(--okbg);border:1px solid #86d3a0}
+.result.bad{background:var(--badbg);border:1px solid #f1a5a5}
+.result.neutral{background:var(--blue-xl);border:1px solid #bfd6f8}
+.result b.big{font-size:1.1rem}
+.result p{margin:4px 0 0}
+.graphbox{overflow-x:auto;margin:10px 0}
+svg.graph{width:100%;height:auto;display:block;margin:0 auto;background:#fbfdff;border:1px solid var(--line);border-radius:12px}
+.node circle{fill:#fff;stroke:#2563eb;stroke-width:2}
+.node circle.inner{fill:none!important;stroke-width:1.6}
+.node.active circle{fill:var(--actbg);stroke:var(--act);stroke-width:3}
+.node.prev circle{fill:#e0f2fe}
+.node.ok circle{fill:var(--okbg);stroke:var(--ok);stroke-width:3}
+.node.bad circle{fill:var(--badbg);stroke:var(--bad);stroke-width:3}
+.node.new circle{fill:#dcfce7;stroke:#16a34a}
+.node.unreach circle{fill:#f1f5f9;stroke:#94a3b8;stroke-dasharray:5 3}
+.node.grp0 circle{fill:#dbeafe}.node.grp1 circle{fill:#ede9fe}.node.grp2 circle{fill:#d1fae5}
+.node.grp3 circle{fill:#fef9c3}.node.grp4 circle{fill:#ffe4e6}.node.grp5 circle{fill:#cffafe}
+.node text{fill:#0f172a;text-anchor:middle;dominant-baseline:central;font-weight:600;font-family:"Segoe UI",Arial,sans-serif}
+.node text.sub{font-weight:400;fill:#64748b;font-size:11px}
+.node .init{stroke:#2563eb;stroke-width:2.2;fill:none}
+.edge path{fill:none;stroke:#64748b;stroke-width:1.7}
+.edge.active path{stroke:#d97706;stroke-width:3.2}
+.edge.dash path{stroke-dasharray:5 4}
+.elabel{font-size:13px;fill:#0f172a;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fbfdff;stroke-width:4px;stroke-linejoin:round;font-family:Consolas,"Courier New",monospace}
+.edge.active .elabel{fill:#b45309;font-weight:700}
+.emptysvg{fill:#64748b;font-size:14px;text-anchor:middle;font-family:"Segoe UI",Arial,sans-serif}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.82rem;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:6px 10px;margin:8px 0}
+.legend .lg{display:inline-flex;align-items:center;gap:5px}
+.tape{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0;min-height:42px}
+.tape .ch{min-width:36px;height:40px;display:grid;place-items:center;border:1.5px solid #b7c9e6;border-radius:8px;background:#fff;font-family:Consolas,"Courier New",monospace;font-size:1.2rem;position:relative}
+.tape .ch small{position:absolute;bottom:-14px;font-size:.62rem;color:#94a3b8;font-family:"Segoe UI",sans-serif}
+.tape .done{background:var(--sky-l)}
+.tape .cur{background:var(--actbg);border-color:var(--act);font-weight:700}
+.tape .bad{background:var(--badbg);border-color:var(--bad)}
+.tape .eps{padding:0 10px;color:var(--muted);font-style:italic;border-style:dashed}
+.tbl{border-collapse:collapse;width:100%;font-size:.9rem;margin:6px 0}
+.tbl th{background:var(--blue-l);color:#1e3a8a;text-align:center;padding:6px 8px;border:1px solid #c5d6f2}
+.tbl td{padding:5px 8px;border:1px solid var(--line);text-align:center;font-family:Consolas,"Courier New",monospace;font-size:.88rem}
+.tbl td.l,.tbl th.l{text-align:left}
+.tbl tr.cur td{background:var(--actbg)}
+.tbl td.okc{background:#f0fdf4;color:#166534}
+.tbl td.badc{background:#fef2f2;color:#991b1b}
+.tblwrap{overflow-x:auto}
+.steplog{max-height:420px;overflow:auto;margin:8px 0;padding-right:4px}
+.step{display:flex;gap:10px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);margin-bottom:6px;background:#fff;opacity:.72}
+.step.cur{opacity:1;border-color:var(--act);background:#fffbeb}
+.step .sn{flex:none;width:26px;height:26px;border-radius:50%;background:var(--blue-l);color:#1e3a8a;display:grid;place-items:center;font-weight:700;font-size:.8rem}
+.step.cur .sn{background:var(--act);color:#fff}
+.step p{margin:2px 0 0;font-size:.92rem}
+.step code,.mono,code{font-family:Consolas,"Courier New",monospace;background:#f1f5f9;border-radius:4px;padding:0 4px}
+.formal{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-family:Cambria,"Times New Roman",serif;font-size:1.1rem;text-align:center;margin:8px 0}
+details.expo{background:var(--blue-xl);border:1px solid #bfd6f8;border-radius:12px;padding:8px 14px;margin-top:12px}
+details.expo summary{cursor:pointer;font-weight:700;color:#1e3a8a}
+details.expo ol,details.expo ul{margin:6px 0 6px 20px;padding:0}
+details.expo li{margin:3px 0}
+.hero{display:grid;grid-template-columns:230px 1fr;gap:22px;align-items:start}
+@media(max-width:720px){.hero{grid-template-columns:1fr}}
+.frame{width:210px;aspect-ratio:3/4;border:2px solid #bfd6f8;border-radius:14px;background:var(--blue-xl);display:grid;place-items:center;overflow:hidden;margin:0 auto}
+.frame img{width:100%;height:100%;object-fit:contain;background:#f1f5f9}
+.frame .empty{color:var(--muted);font-size:.85rem;text-align:center;padding:10px}
+.photo{text-align:center}
+.photo .note{font-size:.76rem;color:var(--muted);margin:6px 0 0}
+.data{width:100%;border-collapse:collapse}
+.data td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.data td:first-child{font-weight:600;color:#1e3a8a;width:38%}
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:8px}
+.modcard{text-align:left;border:1px solid #c5d6f2;background:#fff;border-radius:12px;padding:10px 12px;cursor:pointer;font-family:inherit}
+.modcard:hover{background:var(--blue-xl)}
+.modcard b{color:#1d4ed8;display:block}
+.modcard span{font-size:.85rem;color:#475569}
+.ctrlbox{background:#f8fbff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.edgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.edgrid label{display:block;font-size:.82rem;font-weight:600;color:#334155;margin-bottom:2px}
+.edgrid .inp{width:100%}
+.counter{font-size:.85rem;color:#475569}
+.opsbox{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.92rem}
+pre.tree{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;overflow:auto;margin:6px 0}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:20px 0}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">AF</div>
+      <div>
+        <h1>Simulador interactivo de autómatas finitos</h1>
+        <p>Hernández Ayala Isai · N.º de control 24500259 · Lenguajes y Autómatas I · Instituto Tecnológico de Cerro Azul</p>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-go="home" class="on">Inicio</button>
+      <button data-go="mod1">3.1 Conceptos</button>
+      <button data-go="mod2">3.2 AFND → AFD</button>
+      <button data-go="mod3">3.3 Expresiones regulares</button>
+      <button data-go="mod4">3.4 Minimización</button>
+      <button data-go="mod5">3.5 Intermundo</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ===================== INICIO ===================== -->
+<section class="module active" id="home">
+  <div class="card">
+    <span class="tag">Portada</span>
+    <div class="hero">
+      <div class="photo">
+        <div class="frame">
+          <img id="foto" alt="Fotografía de Hernández Ayala Isai" style="display:none">
+          <div id="fotoVacia" class="empty">Aquí va tu fotografía.<br>Usa el botón de abajo para elegirla.</div>
+        </div>
+        <div class="btnrow" style="justify-content:center">
+          <label class="btn small" for="fotoInput">Seleccionar fotografía</label>
+          <input type="file" id="fotoInput" accept="image/*" hidden>
+          <button class="btn ghost small" id="fotoQuitar" type="button">Quitar</button>
+        </div>
+        <p class="note">La imagen se queda en tu computadora: no se sube a ningún servidor.</p>
+        <div id="fotoMsg"></div>
+      </div>
+      <div>
+        <h2>Simulador interactivo de autómatas finitos</h2>
+        <p class="lead">Proyecto de la unidad 3 de Lenguajes y Autómatas I: cinco módulos con autómatas dibujados, algoritmos reales y explicación paso a paso.</p>
+        <table class="data">
+          <tr><td>Institución</td><td>Instituto Tecnológico de Cerro Azul</td></tr>
+          <tr><td>Alumno</td><td>Hernández Ayala Isai</td></tr>
+          <tr><td>Número de control</td><td>24500259</td></tr>
+          <tr><td>Semestre</td><td>5.º</td></tr>
+          <tr><td>Materia</td><td>Lenguajes y Autómatas I</td></tr>
+          <tr><td>Docente</td><td>Garizurieta Castillo Oscar Alberto</td></tr>
+          <tr><td>Horario</td><td>Martes 11:00–13:00 · Jueves 11:00–13:00 · Viernes 10:00–11:00</td></tr>
+          <tr><td>Periodo escolar</td><td>Agosto–diciembre de 2026</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Información del proyecto</h3>
+    <p>Este programa es un solo archivo HTML (HTML + CSS + JavaScript) que funciona sin internet. Los diagramas se dibujan en SVG a partir de los datos reales del autómata, y los resultados se calculan con los algoritmos: nada está prediseñado.</p>
+    <div class="mods">
+      <button class="modcard" data-go="mod1"><b>3.1 Conceptos y clasificación</b><span>AFD que acepta cadenas binarias que terminan en 1, con recorrido paso a paso.</span></button>
+      <button class="modcard" data-go="mod2"><b>3.2 AFND a AFD</b><span>Construcción por subconjuntos con cierre-ε y comprobación de equivalencia.</span></button>
+      <button class="modcard" data-go="mod3"><b>3.3 Expresiones regulares</b><span>Algoritmo de Thompson: de una expresión regular a un AFND con transiciones ε.</span></button>
+      <button class="modcard" data-go="mod4"><b>3.4 Minimización</b><span>Estados inaccesibles y partición de estados equivalentes.</span></button>
+      <button class="modcard" data-go="mod5"><b>3.5 Intermundo</b><span>Validación de códigos de paquete con formato PK + 4 dígitos.</span></button>
+    </div>
+    <h4>¿Cómo se usa?</h4>
+    <ol>
+      <li>Elige un módulo en el menú de arriba (no se recarga la página).</li>
+      <li>Lee la explicación, revisa el autómata dibujado y pulsa el botón de ejecutar.</li>
+      <li>Avanza con «Siguiente paso»: el estado o la transición que se procesa se resalta en el diagrama.</li>
+      <li>Modifica las cadenas (o los autómatas de ejemplo) y vuelve a ejecutar.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===================== MÓDULO 3.1 ===================== -->
+<section class="module" id="mod1">
+  <div class="card">
+    <span class="tag">Módulo 3.1</span>
+    <h2>Conceptos y clasificación de autómatas finitos</h2>
+    <p class="lead">Un autómata finito es una máquina muy sencilla que lee una cadena símbolo por símbolo y, al final, decide si la acepta o la rechaza.</p>
+    <div class="obj"><b>Objetivo:</b> entender los elementos de un autómata finito y ver cómo un AFD recorre una cadena binaria para decidir si termina en 1.</div>
+    <div class="defs">
+      <div class="def"><b>Autómata finito</b><p>Modelo matemático con una cantidad finita de estados que reconoce un lenguaje (un conjunto de cadenas).</p></div>
+      <div class="def"><b>Estado</b><p>Una «situación» en la que puede estar el autómata. Se dibuja como un círculo.</p></div>
+      <div class="def"><b>Alfabeto (Σ)</b><p>Conjunto de símbolos permitidos. Aquí: {0, 1}.</p></div>
+      <div class="def"><b>Transición</b><p>Regla que dice a qué estado pasar al leer un símbolo. Se dibuja como flecha con etiqueta.</p></div>
+      <div class="def"><b>Estado inicial</b><p>Donde empieza siempre la lectura. Se marca con una flecha que llega desde fuera.</p></div>
+      <div class="def"><b>Estado final</b><p>Estado de aceptación. Se dibuja con doble círculo.</p></div>
+      <div class="def"><b>Aceptar / rechazar</b><p>Se acepta si, al terminar de leer toda la cadena, el autómata está en un estado final. Si no, se rechaza.</p></div>
+      <div class="def"><b>AFD vs AFND</b><p>En un <b>AFD</b> cada estado tiene exactamente una transición por símbolo. En un <b>AFND</b> puede haber varias (o ninguna) y también transiciones ε; es no determinista porque hay varios caminos posibles.</p></div>
+    </div>
+    <h4>Representación formal</h4>
+    <div class="formal">M = (Q, Σ, δ, q<sub>0</sub>, F)</div>
+    <ul>
+      <li><b>Q</b>: conjunto finito de estados.</li>
+      <li><b>Σ</b>: alfabeto de entrada.</li>
+      <li><b>δ</b>: función de transición. En un AFD, δ: Q × Σ → Q. En un AFND, δ: Q × (Σ ∪ {ε}) → subconjuntos de Q.</li>
+      <li><b>q<sub>0</sub></b>: estado inicial (q<sub>0</sub> ∈ Q).</li>
+      <li><b>F</b>: conjunto de estados finales (F ⊆ Q).</li>
+    </ul>
+    <h4>Datos del ejemplo de este módulo</h4>
+    <div class="formal">Q = {q0, q1} &nbsp; Σ = {0, 1} &nbsp; q<sub>0</sub> = q0 &nbsp; F = {q1}</div>
+    <div class="tblwrap" id="m1_table"></div>
+    <p>Este AFD acepta únicamente las cadenas binarias que <b>terminan en 1</b>.</p>
+  </div>
+
+  <div class="card">
+    <h3>Simulador: ¿la cadena binaria termina en 1?</h3>
+    <div id="m1_sim"></div>
+  </div>
+
+  <div class="card">
+    <h3>Proceso paso a paso (lo que ejecuta el programa)</h3>
+    <ol>
+      <li>Se valida que la cadena solo tenga los símbolos 0 y 1.</li>
+      <li>Se coloca el autómata en el estado inicial q0.</li>
+      <li>Por cada símbolo se busca en la tabla δ la entrada δ(estado actual, símbolo) y se mueve al estado indicado.</li>
+      <li>Al agotar la cadena se revisa si el estado actual pertenece a F = {q1}.</li>
+      <li>Si pertenece, se muestra «aceptada»; si no, «rechazada».</li>
+    </ol>
+    <details class="expo" open>
+      <summary>¿Cómo explicarlo en mi exposición?</summary>
+      <p>«Este primer módulo muestra cómo funciona un autómata finito determinista. Mi autómata tiene dos estados, q0 y q1, y acepta las cadenas binarias que terminan en 1. Cuando escribo una cadena y presiono <i>Iniciar simulación</i>, el autómata empieza en q0, que es el estado inicial. Con cada paso lee un símbolo y busca en su tabla de transición a qué estado debe pasar: si lee 1 siempre se va a q1, y si lee 0 siempre regresa a q0. Esa es la idea de determinista: para cada estado y símbolo existe una sola salida. En el dibujo se resalta el estado actual y la flecha que se acaba de usar. Al terminar la cadena veo dónde quedó: si quedó en q1, que es el estado final (doble círculo), la cadena se acepta; si quedó en q0, se rechaza. Lo que aprendo es que el último símbolo leído decide el resultado, porque q1 solo se alcanza leyendo un 1.»</p>
+    </details>
+  </div>
+</section>
+
+<!-- ===================== MÓDULO 3.2 ===================== -->
+<section class="module" id="mod2">
+  <div class="card">
+    <span class="tag">Módulo 3.2</span>
+    <h2>Conversión de AFND a AFD</h2>
+    <p class="lead">Un AFND puede tener varios caminos posibles para una misma cadena. Un AFD tiene uno solo. Aquí se convierte uno en otro con el método de subconjuntos.</p>
+    <div class="obj"><b>Objetivo:</b> construir un AFD equivalente a un AFND usando el algoritmo de construcción por subconjuntos, y comprobar que aceptan las mismas cadenas.</div>
+    <div class="defs">
+      <div class="def"><b>¿Qué es un AFND?</b><p>Autómata finito no determinista: un estado puede tener varias transiciones con el mismo símbolo, o ninguna, y puede tener transiciones ε.</p></div>
+      <div class="def"><b>Diferencia con un AFD</b><p>El AFD tiene exactamente una transición por estado y símbolo. El AFND acepta si <i>algún</i> camino llega a un estado final.</p></div>
+      <div class="def"><b>¿Por qué convertir?</b><p>Una computadora ejecuta un AFD fácilmente (un solo camino). Todo AFND tiene un AFD equivalente, así que se convierte para poder implementarlo.</p></div>
+      <div class="def"><b>Construcción por subconjuntos</b><p>Cada estado del AFD es un <i>conjunto</i> de estados del AFND: los que podrían estar activos al mismo tiempo después de leer la misma cadena.</p></div>
+      <div class="def"><b>Estados finales del AFD</b><p>Un conjunto es final si contiene al menos un estado final del AFND.</p></div>
+      <div class="def"><b>Cierre-ε</b><p>Conjunto de estados alcanzables desde un estado usando solo transiciones ε (incluye al propio estado). El editor sí admite ε y el algoritmo calcula el cierre-ε.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Datos de entrada: AFND (editable)</h3>
+    <p>Ejemplo inicial: Σ = {a, b}, estados q0 y q1, inicial q0, final q1. Con <code>a</code>, q0 va a q0 o a q1; con <code>b</code>, q0 se queda en q0. q1 no tiene transiciones. Puedes cambiarlo: formato <code>estado, símbolo -&gt; destino1, destino2</code>. Para transiciones ε escribe <code>ε</code> o <code>eps</code> como símbolo.</p>
+    <div id="m2_editor"></div>
+    <div id="m2_msg"></div>
+    <div class="legend" data-legend></div>
+    <div class="grid2">
+      <div><h4>AFND original</h4><div class="graphbox"><svg id="m2_nfasvg" class="graph"></svg></div></div>
+      <div><h4>Tabla de transiciones del AFND</h4><div class="tblwrap" id="m2_nfatable"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Construcción por subconjuntos</h3>
+    <div class="btnrow">
+      <button class="btn primary" id="m2_run">Ejecutar algoritmo</button>
+      <button class="btn" id="m2_prev">Paso anterior</button>
+      <button class="btn" id="m2_next">Siguiente paso</button>
+      <button class="btn" id="m2_final">Mostrar resultado final</button>
+      <button class="btn ghost" id="m2_reset">Reiniciar</button>
+      <span class="counter" id="m2_counter"></span>
+    </div>
+    <div id="m2_amsg"></div>
+    <div class="grid2">
+      <div><h4>AFND (se resaltan los estados y transiciones usados)</h4><div class="graphbox"><svg id="m2_nfasvg2" class="graph"></svg></div></div>
+      <div><h4>AFD que se va construyendo</h4><div class="graphbox"><svg id="m2_dfasvg" class="graph"></svg></div></div>
+    </div>
+    <div class="steplog" id="m2_log"></div>
+    <div id="m2_result"></div>
+    <div class="grid2">
+      <div><h4>Tabla de transiciones del AFD</h4><div class="tblwrap" id="m2_dfatable"></div></div>
+      <div><h4>Correspondencia AFD ↔ conjuntos del AFND</h4><div class="tblwrap" id="m2_map"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Comprobar que AFND y AFD aceptan lo mismo</h3>
+    <div class="btnrow">
+      <input id="m2_in" class="inp grow" type="text" maxlength="40" placeholder="Escribe una cadena (vacío = ε)" autocomplete="off" spellcheck="false">
+      <button class="btn primary" id="m2_probe">Probar en ambos</button>
+      <button class="btn" id="m2_examples">Probar ejemplos</button>
+    </div>
+    <div class="chips" id="m2_chips"></div>
+    <div class="btnrow">
+      <span class="lbl">Comparar todas las cadenas hasta longitud</span>
+      <input id="m2_cmpL" class="inp" type="number" min="1" max="12" value="7" style="width:80px">
+      <button class="btn" id="m2_compare">Comparar</button>
+    </div>
+    <div id="m2_testout"></div>
+  </div>
+
+  <div class="card">
+    <h3>Proceso paso a paso (lo que ejecuta el programa)</h3>
+    <ol>
+      <li>Se calcula el cierre-ε del estado inicial del AFND: ese conjunto es el estado inicial del AFD.</li>
+      <li>Se toma un conjunto T del AFD que aún no ha sido procesado.</li>
+      <li>Para cada símbolo a del alfabeto se calcula <code>mover(T, a)</code> (estados a los que se llega desde algún estado de T leyendo a) y luego su cierre-ε.</li>
+      <li>El conjunto resultante U es el destino: si U no existía, se crea un nuevo estado del AFD (si es vacío, es el estado trampa ∅).</li>
+      <li>Se registra la transición T —a→ U y se repite hasta que no queden conjuntos sin procesar.</li>
+      <li>Un conjunto es final si contiene al menos un estado final del AFND.</li>
+      <li>Se dibuja el AFD, se muestra su tabla y se comparan ambos autómatas sobre todas las cadenas hasta la longitud elegida.</li>
+    </ol>
+    <details class="expo" open>
+      <summary>¿Cómo explicarlo en mi exposición?</summary>
+      <p>«En este módulo convierto un autómata no determinista en uno determinista. Mi AFND tiene el problema de que, al leer una <i>a</i> en q0, puede quedarse en q0 o pasar a q1: hay dos caminos. Para eliminar esa ambigüedad uso el método de subconjuntos: cada estado del nuevo AFD representa un conjunto de estados del AFND que pueden estar activos al mismo tiempo. Empiezo con el conjunto {q0}, que es el inicial. Después, para cada símbolo, calculo a qué conjunto llego; por ejemplo, desde {q0} con <i>a</i> llego a {q0,q1}, que es un conjunto nuevo y por eso se crea un estado nuevo. Repito hasta que ya no aparezcan conjuntos nuevos. Un conjunto es estado final si contiene a q1, el final del AFND. En pantalla se resaltan los estados del AFND que se usan en cada paso y se va dibujando el AFD. Al final compruebo con cadenas, y con una comparación exhaustiva, que ambos autómatas aceptan exactamente las mismas cadenas; para este ejemplo, las que terminan en <i>a</i>.»</p>
+    </details>
+  </div>
+</section>
+
+<!-- ===================== MÓDULO 3.3 ===================== -->
+<section class="module" id="mod3">
+  <div class="card">
+    <span class="tag">Módulo 3.3</span>
+    <h2>Expresiones regulares y su representación con AFND</h2>
+    <p class="lead">Una expresión regular describe un patrón de cadenas. El algoritmo de Thompson la convierte en un AFND con transiciones ε.</p>
+    <div class="obj"><b>Objetivo:</b> escribir una expresión regular, construir su AFND con el algoritmo de Thompson y probar cadenas recorriendo ese autómata.</div>
+    <div class="defs">
+      <div class="def"><b>Expresión regular</b><p>Notación compacta para describir un lenguaje, por ejemplo <code>(a|b)*abb</code>. Sirve para buscar patrones, validar datos y construir analizadores léxicos.</p></div>
+      <div class="def"><b>Unión  |</b><p><code>a|b</code> significa «a o b».</p></div>
+      <div class="def"><b>Concatenación</b><p><code>ab</code> significa «a seguida de b». No se escribe ningún símbolo.</p></div>
+      <div class="def"><b>Estrella de Kleene  *</b><p><code>a*</code> significa «cero o más veces a».</p></div>
+      <div class="def"><b>AFND</b><p>Autómata que puede tener varios caminos para una misma cadena.</p></div>
+      <div class="def"><b>Transición ε (epsilon)</b><p>Transición que se puede tomar sin leer ningún símbolo.</p></div>
+      <div class="def"><b>Algoritmo de Thompson</b><p>Construye un fragmento de AFND por cada símbolo y los combina con ε según los operadores (concatenación, unión, estrella). Cada fragmento tiene un solo estado inicial y un solo estado final.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Datos de entrada: expresión regular</h3>
+    <p>Se admiten: símbolos (letras y dígitos), unión <code>|</code>, concatenación (escribir símbolos seguidos), estrella <code>*</code> y paréntesis. Los demás operadores (por ejemplo <code>+</code>, <code>?</code>, <code>.</code>) no están implementados y se indican como error.</p>
+    <div class="btnrow">
+      <input id="m3_re" class="inp grow" type="text" maxlength="60" value="(a|b)*abb" autocomplete="off" spellcheck="false">
+      <button class="btn primary" id="m3_build">Construir AFND (Thompson)</button>
+    </div>
+    <div class="chips" id="m3_chips"></div>
+    <div id="m3_msg"></div>
+    <div id="m3_ops"></div>
+  </div>
+
+  <div class="card">
+    <h3>Construcción de los fragmentos de Thompson</h3>
+    <div class="btnrow">
+      <button class="btn" id="m3_prev">Paso anterior</button>
+      <button class="btn" id="m3_next">Siguiente paso</button>
+      <button class="btn" id="m3_final">Ver AFND completo</button>
+      <button class="btn ghost" id="m3_reset">Reiniciar</button>
+      <span class="counter" id="m3_counter"></span>
+    </div>
+    <div class="legend" data-legend></div>
+    <div class="graphbox"><svg id="m3_svg" class="graph"></svg></div>
+    <div class="steplog" id="m3_log"></div>
+    <div id="m3_result"></div>
+    <h4>Lista de transiciones del AFND generado</h4>
+    <div class="tblwrap" id="m3_table"></div>
+  </div>
+
+  <div class="card">
+    <h3>Probar cadenas contra el AFND generado</h3>
+    <p>La prueba recorre el AFND con <b>cierre-ε</b> y <b>mover</b>; no usa expresiones regulares de JavaScript.</p>
+    <div class="btnrow">
+      <input id="m3_in" class="inp grow" type="text" maxlength="40" placeholder="Escribe una cadena (vacío = ε)" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="btnrow">
+      <button class="btn primary" id="m3_tstart">Iniciar prueba</button>
+      <button class="btn" id="m3_tnext">Siguiente paso</button>
+      <button class="btn" id="m3_tall">Ejecutar todo</button>
+      <button class="btn ghost" id="m3_treset">Reiniciar</button>
+      <select id="m3_tsel" class="inp"></select>
+      <button class="btn" id="m3_tload">Cargar ejemplo</button>
+      <button class="btn" id="m3_ttestall">Probar todos los ejemplos</button>
+    </div>
+    <div class="chips" id="m3_tchips"></div>
+    <div id="m3_tmsg"></div>
+    <div class="graphbox"><svg id="m3_tsvg" class="graph"></svg></div>
+    <div class="tape" id="m3_ttape"></div>
+    <div id="m3_tres"></div>
+    <div id="m3_tlog"></div>
+    <div id="m3_ttests"></div>
+  </div>
+
+  <div class="card">
+    <h3>Proceso paso a paso (lo que ejecuta el programa)</h3>
+    <ol>
+      <li>Se quitan los espacios y se valida cada carácter: solo letras, dígitos, <code>|</code>, <code>*</code>, <code>(</code> y <code>)</code>.</li>
+      <li>Un analizador sintáctico (descenso recursivo) convierte el texto en un árbol: unión tiene la menor precedencia, luego la concatenación y luego la estrella.</li>
+      <li>Se recorre el árbol de abajo hacia arriba. Para un símbolo se crean 2 estados y una transición con ese símbolo.</li>
+      <li>Concatenación: se une el final del fragmento izquierdo con el inicio del derecho con una transición ε.</li>
+      <li>Unión: nuevo inicio con ε hacia los dos fragmentos; los dos finales van con ε a un nuevo final.</li>
+      <li>Estrella: nuevo inicio y nuevo final, ε para entrar, ε para repetir, ε para salir y ε para saltarse el fragmento (cero repeticiones).</li>
+      <li>Se renombran los estados en orden de recorrido (el inicial es q0) y se dibuja el AFND completo.</li>
+      <li>Para probar una cadena se calcula el cierre-ε del inicial y, por cada símbolo, <code>cierre-ε(mover(S, símbolo))</code>. Se acepta si el conjunto final contiene el estado de aceptación.</li>
+    </ol>
+    <details class="expo" open>
+      <summary>¿Cómo explicarlo en mi exposición?</summary>
+      <p>«Aquí escribo una expresión regular y el programa la convierte en un autómata no determinista con el algoritmo de Thompson. Primero revisa que la expresión sea válida y arma un árbol con sus operadores: unión, concatenación y estrella. Después construye el autómata por partes: para cada símbolo crea un mini-autómata de dos estados, y luego los junta usando transiciones épsilon, que son saltos sin leer nada. En la unión crea un estado de inicio que se bifurca; en la estrella agrega saltos para poder repetir o no entrar nunca. El botón <i>Siguiente paso</i> me deja ver cada fragmento nuevo resaltado en verde. Al final tengo el AFND completo con su tabla de transiciones. Para probar una cadena, el programa mantiene el conjunto de estados activos, calcula el cierre épsilon y avanza símbolo por símbolo; si al final está activo el estado de aceptación, la cadena se acepta. Con <i>(a|b)*abb</i> aprendo que el lenguaje son las cadenas de a y b que terminan en abb.»</p>
+    </details>
+  </div>
+</section>
+
+<!-- ===================== MÓDULO 3.4 ===================== -->
+<section class="module" id="mod4">
+  <div class="card">
+    <span class="tag">Módulo 3.4</span>
+    <h2>Minimización de estados en un AFD</h2>
+    <p class="lead">Minimizar es lograr un autómata con la menor cantidad posible de estados que acepta exactamente el mismo lenguaje.</p>
+    <div class="obj"><b>Objetivo:</b> eliminar estados inaccesibles, agrupar estados equivalentes por refinamiento de particiones y construir el AFD mínimo.</div>
+    <div class="defs">
+      <div class="def"><b>¿Qué es minimizar?</b><p>Reducir el número de estados sin cambiar qué cadenas se aceptan.</p></div>
+      <div class="def"><b>¿Por qué reducir estados?</b><p>Un autómata más pequeño es más fácil de entender, ocupa menos memoria y es más rápido de implementar y verificar.</p></div>
+      <div class="def"><b>Estados equivalentes</b><p>Dos estados son equivalentes si, desde cualquiera de los dos, se aceptan exactamente las mismas cadenas.</p></div>
+      <div class="def"><b>Estado inaccesible</b><p>Estado al que no se puede llegar desde el estado inicial con ninguna cadena. Se puede eliminar sin afectar al lenguaje.</p></div>
+      <div class="def"><b>Partición de estados</b><p>Se empieza con dos grupos (finales y no finales) y se separan los estados cuyas transiciones llevan a grupos distintos, hasta que ya no haya cambios.</p></div>
+      <div class="def"><b>Mismo lenguaje</b><p>Los estados que quedan juntos se comportan igual ante cualquier cadena, por eso fusionarlos no cambia las cadenas aceptadas.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Datos de entrada: AFD (editable)</h3>
+    <p>Ejemplo: Σ = {0,1}, estados A, B, C, D, inicial A, final C. El AFD debe ser completo (una transición por estado y símbolo). Formato: <code>estado, símbolo -&gt; destino</code>.</p>
+    <div id="m4_editor"></div>
+    <div id="m4_msg"></div>
+    <div class="legend" data-legend></div>
+    <div class="grid2">
+      <div><h4>AFD original</h4><div class="graphbox"><svg id="m4_osvg" class="graph"></svg></div></div>
+      <div><h4>Tabla de transiciones original</h4><div class="tblwrap" id="m4_otable"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Algoritmo de minimización</h3>
+    <div class="btnrow">
+      <button class="btn primary" id="m4_run">Ejecutar minimización</button>
+      <button class="btn" id="m4_prev">Paso anterior</button>
+      <button class="btn" id="m4_next">Siguiente paso</button>
+      <button class="btn" id="m4_final">Mostrar resultado final</button>
+      <button class="btn ghost" id="m4_reset">Reiniciar</button>
+      <span class="counter" id="m4_counter"></span>
+    </div>
+    <div class="grid2">
+      <div><h4>AFD original (colores = grupos de la partición)</h4><div class="graphbox"><svg id="m4_osvg2" class="graph"></svg></div></div>
+      <div><h4>AFD minimizado</h4><div class="graphbox"><svg id="m4_msvg" class="graph"></svg></div></div>
+    </div>
+    <div class="steplog" id="m4_log"></div>
+    <div id="m4_result"></div>
+    <h4>Tabla de transiciones del AFD minimizado</h4>
+    <div class="tblwrap" id="m4_mtable"></div>
+  </div>
+
+  <div class="card">
+    <h3>Comprobar que ambos autómatas aceptan lo mismo</h3>
+    <div class="btnrow">
+      <input id="m4_in" class="inp grow" type="text" maxlength="40" placeholder="Escribe una cadena (vacío = ε)" autocomplete="off" spellcheck="false">
+      <button class="btn primary" id="m4_probe">Probar en ambos</button>
+      <button class="btn" id="m4_examples">Probar ejemplos</button>
+    </div>
+    <div class="chips" id="m4_chips"></div>
+    <div class="btnrow">
+      <span class="lbl">Comparar todas las cadenas hasta longitud</span>
+      <input id="m4_cmpL" class="inp" type="number" min="1" max="12" value="8" style="width:80px">
+      <button class="btn" id="m4_compare">Comparar</button>
+    </div>
+    <div id="m4_testout"></div>
+  </div>
+
+  <div class="card">
+    <h3>Proceso paso a paso (lo que ejecuta el programa)</h3>
+    <ol>
+      <li>Se recorre el AFD desde el estado inicial (búsqueda en anchura) para encontrar los estados accesibles.</li>
+      <li>Los estados que no se visitaron son inaccesibles y se eliminan.</li>
+      <li>Partición inicial: {estados no finales} y {estados finales}, solo con estados accesibles.</li>
+      <li>Refinamiento: para cada estado se calcula su «firma» (a qué grupo va con cada símbolo). Los estados de un mismo grupo con firmas distintas se separan.</li>
+      <li>Se repite hasta que una ronda ya no separa ningún grupo.</li>
+      <li>Los estados que quedan en el mismo grupo son equivalentes: cada grupo se convierte en un estado del AFD mínimo.</li>
+      <li>Las transiciones del mínimo se toman de un representante de cada grupo; es final el grupo formado por estados finales.</li>
+      <li>Se comparan los números de estados y se prueban cadenas en ambos autómatas.</li>
+    </ol>
+    <details class="expo" open>
+      <summary>¿Cómo explicarlo en mi exposición?</summary>
+      <p>«Este módulo reduce un autómata a su versión más pequeña sin cambiar lo que acepta. Mi ejemplo tiene cuatro estados: A, B, C y D. Lo primero que hace el programa es ver qué estados se pueden alcanzar desde A; D no se alcanza nunca, así que es inaccesible y se elimina. Luego separa los estados restantes en finales y no finales: queda {A,B} y {C}. Después revisa si, dentro de cada grupo, los estados mandan a los mismos grupos con 0 y con 1. A y B hacen exactamente lo mismo: con 0 van a {A,B} y con 1 van a {C}. Entonces son equivalentes y se fusionan. El resultado es un autómata de solo dos estados, AB y C, que acepta las cadenas que terminan en 1, igual que el original. En pantalla se pintan los grupos con colores y al final compruebo con cadenas, y con una comparación exhaustiva, que ambos autómatas aceptan lo mismo.»</p>
+    </details>
+  </div>
+</section>
+
+<!-- ===================== MÓDULO 3.5 ===================== -->
+<section class="module" id="mod5">
+  <div class="card">
+    <span class="tag">Módulo 3.5</span>
+    <h2>Aplicación práctica: agencia Intermundo</h2>
+    <p class="lead">La agencia Intermundo recibe y resguarda paquetes. Cada paquete tiene un código con el formato <b>PK</b> seguido de <b>exactamente cuatro dígitos</b>.</p>
+    <div class="obj"><b>Objetivo:</b> validar el formato de los códigos de paquete recorriendo un autómata finito, no con una expresión regular.</div>
+    <div class="tblwrap">
+      <table class="tbl" style="max-width:520px">
+        <tr><th>Código</th><th>¿Válido?</th><th>Motivo</th></tr>
+        <tr><td>PK1234</td><td class="okc">válido</td><td class="l">PK + 4 dígitos</td></tr>
+        <tr><td>PK0001</td><td class="okc">válido</td><td class="l">los ceros iniciales cuentan como dígitos</td></tr>
+        <tr><td>PK12A4</td><td class="badc">inválido</td><td class="l">«A» no es dígito</td></tr>
+        <tr><td>PK123</td><td class="badc">inválido</td><td class="l">solo 3 dígitos</td></tr>
+        <tr><td>PK12345</td><td class="badc">inválido</td><td class="l">5 dígitos</td></tr>
+        <tr><td>XP1234</td><td class="badc">inválido</td><td class="l">no empieza con PK</td></tr>
+      </table>
+    </div>
+    <h4>El autómata</h4>
+    <div class="formal">Q = {q0,…,q6} &nbsp; Σ = {P, K, 0–9} &nbsp; q<sub>0</sub> = q0 &nbsp; F = {q6}</div>
+    <p>q0 espera la <b>P</b>, q1 espera la <b>K</b>, q2–q5 esperan un dígito cada uno y q6 es el estado final: ya se leyeron los 4 dígitos y no debe haber más caracteres. Las transiciones que no están dibujadas llevan a un <b>estado de error implícito</b> (el autómata se bloquea y rechaza). Se distinguen mayúsculas y minúsculas: <code>pk1234</code> es inválido.</p>
+  </div>
+
+  <div class="card">
+    <h3>Simulador de validación de códigos</h3>
+    <div id="m5_sim"></div>
+    <div class="tblwrap" id="m5_table"></div>
+  </div>
+
+  <div class="card">
+    <h3>¿Para qué sirven los autómatas en los sistemas informáticos?</h3>
+    <div class="defs">
+      <div class="def"><b>Validación de entradas</b><p>Formularios, códigos, folios, correos y contraseñas se revisan carácter por carácter con la misma idea de este módulo.</p></div>
+      <div class="def"><b>Reconocimiento de patrones</b><p>Buscadores de texto, analizadores léxicos de compiladores y filtros de spam reconocen patrones con autómatas.</p></div>
+      <div class="def"><b>Control de procesos</b><p>Un paquete pasa por estados (recibido, resguardado, entregado); semáforos, máquinas expendedoras y protocolos de red son máquinas de estados.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Proceso paso a paso (lo que ejecuta el programa)</h3>
+    <ol>
+      <li>Se toma el código escrito (sin espacios al inicio ni al final) y se coloca el autómata en q0.</li>
+      <li>Por cada carácter se busca la transición δ(estado, carácter): P en q0, K en q1, y un dígito 0–9 en q2, q3, q4 y q5.</li>
+      <li>Si no existe transición (carácter inesperado o carácter de sobra en q6), el autómata se bloquea y rechaza.</li>
+      <li>Si se agotan los caracteres, se acepta únicamente si el estado actual es q6.</li>
+      <li>Se muestra el resultado con una explicación de por qué se aceptó o rechazó.</li>
+    </ol>
+    <details class="expo" open>
+      <summary>¿Cómo explicarlo en mi exposición?</summary>
+      <p>«Este módulo aplica los autómatas a un caso real: la agencia Intermundo identifica sus paquetes con un código que debe ser PK y cuatro dígitos. Construí un autómata con siete estados, de q0 a q6. El estado q0 espera una P, q1 una K, y luego hay cuatro estados que esperan un dígito cada uno. Solo q6, el último, es estado final. Cuando escribo un código y lo valido, el programa lo recorre carácter por carácter, resalta el estado actual y la transición usada, y me dice por qué lo aceptó o lo rechazó. Por ejemplo, PK12A4 se rechaza porque en q4 llegó una A, que no es dígito; PK123 se rechaza porque la cadena terminó en q5, que no es final; y PK12345 se rechaza porque en q6 ya no hay transiciones para un quinto dígito. La decisión siempre sale de recorrer el autómata. Esto muestra para qué sirven los autómatas en sistemas reales: validar entradas y reconocer patrones.»</p>
+    </details>
+  </div>
+</section>
+
+</main>
+<footer>Instituto Tecnológico de Cerro Azul · Lenguajes y Autómatas I · Hernández Ayala Isai · 24500259 · Agosto–diciembre 2026</footer>
+
+<script>
+'use strict';
+/* =====================================================================
+   PARTE 1. LÓGICA (algoritmos puros, sin DOM)
+   ===================================================================== */
+const EPS = 'ε';
+const KEY = '\u0001';
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function showChar(c){return c===' '?'␣':c;}
+function fmtSet(a){a=Array.isArray(a)?a:[...a];return a.length?'{'+a.join(', ')+'}':'∅';}
+function orderMap(states){const o={};states.forEach((s,i)=>{o[s]=i;});return o;}
+function sortedBy(order,set){return [...set].sort((a,b)=>order[a]-order[b]);}
+
+/* ---------- AFND: cierre-ε, mover, aceptación, traza ---------- */
+function nfaClosure(nfa,set){
+  const res=new Set(set), stack=[...set], used=[];
+  while(stack.length){
+    const s=stack.pop();
+    const t=(nfa.delta[s]&&nfa.delta[s][EPS])||[];
+    for(const q of t){
+      used.push({from:s,to:q,label:EPS});
+      if(!res.has(q)){res.add(q);stack.push(q);}
+    }
+  }
+  return {set:res,used};
+}
+function nfaMove(nfa,set,a){
+  const out=new Set();
+  for(const s of set){const t=(nfa.delta[s]&&nfa.delta[s][a])||[];t.forEach(q=>out.add(q));}
+  return out;
+}
+function nfaMoveEdges(nfa,set,a){
+  const used=[];
+  for(const s of set){const t=(nfa.delta[s]&&nfa.delta[s][a])||[];t.forEach(q=>used.push({from:s,to:q,label:a}));}
+  return used;
+}
+function nfaAccepts(nfa,str){
+  let cur=nfaClosure(nfa,[nfa.start]).set;
+  for(const ch of str){
+    cur=nfaClosure(nfa,nfaMove(nfa,cur,ch)).set;
+    if(!cur.size) return false;
+  }
+  return nfa.finals.some(f=>cur.has(f));
+}
+function nfaTrace(nfa,str){
+  const ord=orderMap(nfa.states), steps=[];
+  const c0=nfaClosure(nfa,[nfa.start]);
+  let cur=c0.set;
+  steps.push({kind:'init',set:sortedBy(ord,cur),used:c0.used,pos:-1});
+  const chars=Array.from(str);
+  chars.forEach((ch,i)=>{
+    const before=sortedBy(ord,cur);
+    const mv=nfaMove(nfa,cur,ch), mvEd=nfaMoveEdges(nfa,cur,ch);
+    const cl=nfaClosure(nfa,mv);
+    cur=cl.set;
+    steps.push({kind:'read',sym:ch,from:before,moved:sortedBy(ord,mv),set:sortedBy(ord,cur),used:mvEd.concat(cl.used),pos:i,unknown:!nfa.alphabet.includes(ch)});
+  });
+  const accepted=nfa.finals.some(f=>cur.has(f));
+  return {steps,accepted,final:sortedBy(ord,cur)};
+}
+
+/* ---------- AFD: aceptación y traza ---------- */
+function dfaAccepts(dfa,str){
+  let s=dfa.start;
+  for(const ch of str){
+    const t=dfa.delta[s]&&dfa.delta[s][ch];
+    if(t===undefined) return false;
+    s=t;
+  }
+  return dfa.finals.includes(s);
+}
+function dfaTrace(dfa,str){
+  const steps=[{kind:'init',state:dfa.start}];
+  let s=dfa.start, stuck=false;
+  const chars=Array.from(str);
+  for(let i=0;i<chars.length;i++){
+    const ch=chars[i];
+    const t=dfa.delta[s]&&dfa.delta[s][ch];
+    if(t===undefined){steps.push({kind:'stuck',from:s,sym:ch,pos:i});stuck=true;break;}
+    steps.push({kind:'read',from:s,sym:ch,to:t,pos:i});
+    s=t;
+  }
+  return {steps,accepted:!stuck&&dfa.finals.includes(s),stuck,final:s};
+}
+
+/* ---------- Comparación exhaustiva de lenguajes ---------- */
+function compareLang(f,g,alpha,L){
+  let cnt=1,sum=1,useL=0;
+  for(let l=1;l<=L;l++){cnt*=alpha.length;if(sum+cnt>30000)break;sum+=cnt;useL=l;}
+  let checked=0,mism=null;
+  const test=s=>{checked++;if(mism===null&&f(s)!==g(s))mism=s;};
+  test('');
+  let layer=[''];
+  for(let l=1;l<=useL;l++){
+    const nl=[];
+    for(const s of layer)for(const a of alpha)nl.push(s+a);
+    nl.forEach(test);
+    layer=nl;
+  }
+  return {checked,useL,mism};
+}
+
+/* ---------- Lectura y validación de un autómata escrito por el usuario ---------- */
+function parseSpec(f,opt){
+  const errors=[];
+  const toks=s=>s.split(/[,\s]+/).map(x=>x.trim()).filter(Boolean);
+  const isEps=x=>x==='ε'||x==='eps'||x==='epsilon';
+  const alphabet=[...new Set(toks(f.alphabet))];
+  const states=[...new Set(toks(f.states))];
+  if(!alphabet.length) errors.push('El alfabeto está vacío: escribe al menos un símbolo (por ejemplo: a, b).');
+  alphabet.forEach(a=>{if(isEps(a))errors.push('El alfabeto no debe incluir ε; las transiciones ε se escriben directamente en las transiciones.');});
+  if(!states.length) errors.push('La lista de estados está vacía.');
+  const start=f.start.trim();
+  if(!start) errors.push('Indica el estado inicial.');
+  else if(!states.includes(start)) errors.push('El estado inicial «'+esc(start)+'» no está en la lista de estados.');
+  const finals=[...new Set(toks(f.finals))];
+  finals.forEach(x=>{if(!states.includes(x))errors.push('El estado final «'+esc(x)+'» no está en la lista de estados.');});
+  if(!finals.length) errors.push('Indica al menos un estado final.');
+  const delta={};
+  states.forEach(s=>{delta[s]={};});
+  const lines=f.trans.split('\n');
+  lines.forEach((raw,i)=>{
+    const line=raw.trim();
+    if(!line||line.startsWith('#'))return;
+    const parts=line.split(/->|→/);
+    if(parts.length!==2){errors.push('Línea '+(i+1)+': usa el formato «estado, símbolo -> destino».');return;}
+    const left=parts[0].split(',').map(x=>x.trim());
+    if(left.length!==2||!left[0]||!left[1]){errors.push('Línea '+(i+1)+': el lado izquierdo debe ser «estado, símbolo».');return;}
+    const s=left[0]; let a=left[1];
+    const eps=isEps(a);
+    if(eps) a=EPS;
+    if(!states.includes(s)){errors.push('Línea '+(i+1)+': el estado «'+esc(s)+'» no está declarado.');return;}
+    if(eps&&!opt.allowEps){errors.push('Línea '+(i+1)+': en un AFD no puede haber transiciones ε.');return;}
+    if(!eps&&!alphabet.includes(a)){errors.push('Línea '+(i+1)+': el símbolo «'+esc(a)+'» no pertenece al alfabeto.');return;}
+    const targets=toks(parts[1]).filter(x=>x!=='∅');
+    for(const t of targets){if(!states.includes(t)){errors.push('Línea '+(i+1)+': el destino «'+esc(t)+'» no está declarado.');return;}}
+    if(opt.deterministic){
+      if(targets.length!==1){errors.push('Línea '+(i+1)+': en un AFD cada transición debe tener exactamente un destino.');return;}
+      if(delta[s][a]!==undefined){errors.push('Línea '+(i+1)+': ya existe una transición de «'+esc(s)+'» con «'+esc(a)+'» (un AFD no puede repetirla).');return;}
+      delta[s][a]=targets[0];
+    }else{
+      delta[s][a]=delta[s][a]||[];
+      targets.forEach(t=>{if(!delta[s][a].includes(t))delta[s][a].push(t);});
+    }
+  });
+  if(opt.deterministic&&!errors.length){
+    states.forEach(s=>alphabet.forEach(a=>{
+      if(delta[s][a]===undefined)errors.push('Falta la transición de «'+esc(s)+'» con «'+esc(a)+'». El AFD debe ser completo.');
+    }));
+  }
+  if(errors.length) return {ok:false,errors};
+  return {ok:true,automaton:{states,alphabet,start,finals,delta}};
+}
+
+/* ---------- Construcción por subconjuntos ---------- */
+function subsetConstruction(nfa){
+  const A=nfa.alphabet, ord=orderMap(nfa.states);
+  const finalsSet=new Set(nfa.finals);
+  const dstates=[], byKey=new Map(), dedges=[], steps=[];
+  let letters=0;
+  const nameFor=()=>{const i=letters++;return i<26?String.fromCharCode(65+i):'S'+i;};
+  function addState(arr){
+    const k=arr.join('|');
+    if(byKey.has(k)) return byKey.get(k);
+    if(dstates.length>=64) throw new Error('El AFD resultante supera 64 estados; usa un AFND más pequeño.');
+    const st={name:arr.length?nameFor():'∅',set:arr,final:arr.some(s=>finalsSet.has(s))};
+    dstates.push(st);byKey.set(k,st);
+    return st;
+  }
+  const snap=extra=>Object.assign({dfaNodes:dstates.map(d=>d.name),dfaEdges:dedges.map(e=>Object.assign({},e)),showFinals:false},extra);
+
+  const cl0=nfaClosure(nfa,[nfa.start]);
+  const s0=sortedBy(ord,cl0.set);
+  const D0=addState(s0);
+  steps.push(snap({
+    title:'Estado inicial del AFD',
+    html:'El estado inicial del AFND es <b>'+esc(nfa.start)+'</b>. Su cierre-ε es cierre-ε({'+esc(nfa.start)+'}) = <code>'+fmtSet(s0)+'</code>. Ese conjunto es el estado inicial del AFD y lo llamamos <b>'+D0.name+'</b>.',
+    nfaSt:s0,nfaEd:cl0.used,newNode:D0.name
+  }));
+
+  for(let i=0;i<dstates.length;i++){
+    const T=dstates[i];
+    steps.push(snap({
+      title:'Procesar '+T.name+' = '+fmtSet(T.set),
+      html:'Se toma el estado <b>'+T.name+'</b> del AFD (conjunto <code>'+fmtSet(T.set)+'</code> del AFND) y se calcula su destino con cada símbolo del alfabeto.',
+      nfaSt:T.set,curNode:T.name
+    }));
+    for(const a of A){
+      const mv=nfaMove(nfa,new Set(T.set),a);
+      const mvEd=nfaMoveEdges(nfa,new Set(T.set),a);
+      const mvArr=sortedBy(ord,mv);
+      const cl=nfaClosure(nfa,mv);
+      const U=sortedBy(ord,cl.set);
+      const before=dstates.length;
+      const D=addState(U);
+      const isNew=dstates.length>before;
+      dedges.push({from:T.name,to:D.name,label:a});
+      let note;
+      if(isNew) note=U.length?'Es un conjunto nuevo: se crea el estado <b>'+D.name+'</b>.':'Es el conjunto vacío: se crea el estado trampa <b>∅</b> (no hay camino posible).';
+      else note='Ese conjunto ya existía como <b>'+D.name+'</b>: solo se agrega la transición.';
+      steps.push(snap({
+        title:'δ\'('+T.name+', '+a+') = '+D.name,
+        html:'mover('+fmtSet(T.set)+', '+esc(a)+') = <code>'+fmtSet(mvArr)+'</code>; cierre-ε = <code>'+fmtSet(U)+'</code>. Entonces δ\'('+T.name+', '+esc(a)+') = <b>'+D.name+'</b>. '+note,
+        nfaSt:T.set,nfaSt2:U,nfaEd:mvEd.concat(cl.used),curNode:T.name,
+        hlEdge:{from:T.name,to:D.name},newNode:isNew?D.name:null
+      }));
+    }
+  }
+  const fins=dstates.filter(d=>d.final);
+  steps.push(snap({
+    title:'Identificar los estados finales',
+    html:'Un conjunto es final si contiene algún estado final del AFND ('+fmtSet(nfa.finals)+'). '+
+      dstates.map(d=>'<b>'+d.name+'</b> = '+fmtSet(d.set)+(d.final?' contiene '+esc(d.set.filter(s=>finalsSet.has(s)).join(', '))+' ⇒ <b>es final</b>':' no contiene estados finales ⇒ no es final')).join('; ')+'.',
+    showFinals:true,finNodes:fins.map(d=>d.name)
+  }));
+  steps.push(snap({
+    title:'AFD resultante',
+    html:'El AFND tenía <b>'+nfa.states.length+'</b> estados y el AFD obtenido tiene <b>'+dstates.length+'</b>. Estado inicial: <b>'+D0.name+'</b>. Estados finales: <b>'+(fins.length?fins.map(d=>d.name).join(', '):'ninguno')+'</b>. Ya no quedan conjuntos sin procesar.',
+    showFinals:true,finNodes:fins.map(d=>d.name),done:true
+  }));
+  const delta={}, cap={};
+  dstates.forEach(d=>{delta[d.name]={};cap[d.name]=fmtSet(d.set);});
+  dedges.forEach(e=>{delta[e.from][e.label]=e.to;});
+  return {
+    dfa:{states:dstates.map(d=>d.name),alphabet:A,start:D0.name,finals:fins.map(d=>d.name),delta,caption:cap},
+    dstates,steps
+  };
+}
+
+/* ---------- Expresiones regulares: análisis sintáctico ---------- */
+function RxError(msg){this.message=msg;}
+function parseRegex(src){
+  const s=src.replace(/\s+/g,'');
+  if(!s) throw new RxError('Escribe una expresión regular.');
+  const unsupported='+?.[]{}\\^$';
+  for(let k=0;k<s.length;k++){
+    const c=s[k];
+    if(unsupported.includes(c)) throw new RxError('El operador «'+c+'» (posición '+(k+1)+') no está admitido en esta versión. Solo se permiten símbolos, | (unión), * (estrella), concatenación y paréntesis.');
+    if(!/[A-Za-z0-9|*()]/.test(c)) throw new RxError('El carácter «'+c+'» (posición '+(k+1)+') no está permitido. Usa letras, dígitos y los operadores | * ( ).');
+  }
+  let i=0;
+  const peek=()=>s[i];
+  function expr(){let l=term();while(peek()==='|'){i++;const r=term();l={t:'alt',l:l,r:r};}return l;}
+  function term(){
+    let l=factor();
+    while(i<s.length&&peek()!=='|'&&peek()!==')'){const r=factor();l={t:'cat',l:l,r:r};}
+    return l;
+  }
+  function factor(){let a=atom();while(peek()==='*'){i++;a={t:'star',e:a};}return a;}
+  function atom(){
+    const c=peek();
+    if(c===undefined) throw new RxError('La expresión termina antes de tiempo: falta un operando (por ejemplo después de «|» o «(»).');
+    if(c==='|') throw new RxError('Falta un operando antes del «|» en la posición '+(i+1)+'.');
+    if(c==='*') throw new RxError('El «*» de la posición '+(i+1)+' no tiene un símbolo o grupo anterior al que aplicarse.');
+    if(c===')') throw new RxError('Hay un «)» en la posición '+(i+1)+' sin su «(» correspondiente, o falta un operando antes de él.');
+    if(c==='('){
+      i++;
+      if(peek()===')') throw new RxError('Paréntesis vacíos en la posición '+i+': escribe una expresión dentro.');
+      const e=expr();
+      if(peek()!==')') throw new RxError('Falta cerrar un paréntesis: no hay «)» para el «(» abierto.');
+      i++;
+      return e;
+    }
+    i++;
+    return {t:'sym',c:c};
+  }
+  const ast=expr();
+  if(i<s.length) throw new RxError('Hay un «)» en la posición '+(i+1)+' sin su «(» correspondiente.');
+  const info={clean:s,symbols:[],unions:0,stars:0,groups:0,concats:0};
+  for(const c of s){if(c==='|')info.unions++;else if(c==='*')info.stars++;else if(c==='(')info.groups++;}
+  (function walk(n){
+    if(n.t==='sym'){info.symbols.push(n.c);}
+    else if(n.t==='cat'){info.concats++;walk(n.l);walk(n.r);}
+    else if(n.t==='alt'){walk(n.l);walk(n.r);}
+    else walk(n.e);
+  })(ast);
+  info.alphabet=[...new Set(info.symbols)].sort();
+  return {ast,info};
+}
+function treeText(n,depth){
+  const pad='  '.repeat(depth);
+  if(n.t==='sym') return pad+'símbolo «'+n.c+'»\n';
+  if(n.t==='cat') return pad+'concatenación (·)\n'+treeText(n.l,depth+1)+treeText(n.r,depth+1);
+  if(n.t==='alt') return pad+'unión (|)\n'+treeText(n.l,depth+1)+treeText(n.r,depth+1);
+  return pad+'estrella (*)\n'+treeText(n.e,depth+1);
+}
+
+/* ---------- Algoritmo de Thompson ---------- */
+function thompson(ast){
+  let n=0;
+  const edges=[], raw=[];
+  const mk=()=>n++;
+  const add=(a,b,l)=>{edges.push({from:a,to:b,label:l});};
+  function build(node){
+    if(node.t==='sym'){
+      const s=mk(),f=mk(),e0=edges.length;add(s,f,node.c);
+      raw.push({kind:'sym',c:node.c,s,f,nS:n,nE:edges.length,e0,newSt:[s,f]});
+      return {s,f};
+    }
+    if(node.t==='cat'){
+      const A=build(node.l),B=build(node.r),e0=edges.length;
+      add(A.f,B.s,EPS);
+      raw.push({kind:'cat',A,B,s:A.s,f:B.f,nS:n,nE:edges.length,e0,newSt:[]});
+      return {s:A.s,f:B.f};
+    }
+    if(node.t==='alt'){
+      const A=build(node.l),B=build(node.r),s=mk(),f=mk(),e0=edges.length;
+      add(s,A.s,EPS);add(s,B.s,EPS);add(A.f,f,EPS);add(B.f,f,EPS);
+      raw.push({kind:'alt',A,B,s,f,nS:n,nE:edges.length,e0,newSt:[s,f]});
+      return {s,f};
+    }
+    const A=build(node.e),s=mk(),f=mk(),e0=edges.length;
+    add(s,A.s,EPS);add(A.f,A.s,EPS);add(A.f,f,EPS);add(s,f,EPS);
+    raw.push({kind:'star',A,s,f,nS:n,nE:edges.length,e0,newSt:[s,f]});
+    return {s,f};
+  }
+  const top=build(ast);
+  // renombrar en orden de recorrido (el inicial será q0)
+  const order=[], seen=new Set([top.s]), q=[top.s];
+  while(q.length){
+    const u=q.shift();order.push(u);
+    edges.forEach(e=>{if(e.from===u&&!seen.has(e.to)){seen.add(e.to);q.push(e.to);}});
+  }
+  for(let k=0;k<n;k++)if(!seen.has(k))order.push(k);
+  const name={};
+  order.forEach((old,i)=>{name[old]='q'+i;});
+  const states=order.map(o=>name[o]);
+  const symSet=new Set();
+  const delta={};
+  states.forEach(s=>{delta[s]={};});
+  edges.forEach(e=>{
+    const a=name[e.from],b=name[e.to];
+    (delta[a][e.label]=delta[a][e.label]||[]).push(b);
+    if(e.label!==EPS)symSet.add(e.label);
+  });
+  const nfa={states,alphabet:[...symSet].sort(),start:name[top.s],finals:[name[top.f]],delta};
+  const nm=o=>name[o];
+  const steps=raw.map(r=>{
+    let title,html;
+    if(r.kind==='sym'){
+      title='Fragmento para el símbolo «'+r.c+'»';
+      html='Se crean dos estados, <b>'+nm(r.s)+'</b> (inicio) y <b>'+nm(r.f)+'</b> (fin), con la transición <code>'+nm(r.s)+' —'+esc(r.c)+'→ '+nm(r.f)+'</code>.';
+    }else if(r.kind==='cat'){
+      title='Concatenación';
+      html='Se unen los dos fragmentos: el final del izquierdo (<b>'+nm(r.A.f)+'</b>) se conecta al inicio del derecho (<b>'+nm(r.B.s)+'</b>) con <code>'+nm(r.A.f)+' —ε→ '+nm(r.B.s)+'</code>. El fragmento resultante empieza en <b>'+nm(r.s)+'</b> y termina en <b>'+nm(r.f)+'</b>.';
+    }else if(r.kind==='alt'){
+      title='Unión (|)';
+      html='Se crean un inicio nuevo <b>'+nm(r.s)+'</b> y un final nuevo <b>'+nm(r.f)+'</b>. Desde <b>'+nm(r.s)+'</b> salen transiciones ε hacia los inicios de ambos fragmentos (<b>'+nm(r.A.s)+'</b> y <b>'+nm(r.B.s)+'</b>); los finales (<b>'+nm(r.A.f)+'</b> y <b>'+nm(r.B.f)+'</b>) van con ε a <b>'+nm(r.f)+'</b>.';
+    }else{
+      title='Estrella de Kleene (*)';
+      html='Se crean inicio <b>'+nm(r.s)+'</b> y final <b>'+nm(r.f)+'</b>. Transiciones ε: <b>'+nm(r.s)+'→'+nm(r.A.s)+'</b> (entrar), <b>'+nm(r.A.f)+'→'+nm(r.A.s)+'</b> (repetir), <b>'+nm(r.A.f)+'→'+nm(r.f)+'</b> (salir) y <b>'+nm(r.s)+'→'+nm(r.f)+'</b> (cero repeticiones).';
+    }
+    return {title,html,nS:r.nS,nE:r.nE,e0:r.e0,newSt:r.newSt.map(nm),fragS:nm(r.s),fragF:nm(r.f)};
+  });
+  const eEdges=edges.map(e=>({from:nm(e.from),to:nm(e.to),label:e.label}));
+  const epsCount=edges.filter(e=>e.label===EPS).length;
+  return {nfa,steps,edges:eEdges,name,epsCount};
+}
+
+/* ---------- Minimización de AFD ---------- */
+function minimizeDFA(dfa){
+  const A=dfa.alphabet, order=dfa.states, ord=orderMap(order);
+  const finalsSet=new Set(dfa.finals);
+  const steps=[];
+  const gname=g=>'{'+g.join(', ')+'}';
+  // 1. accesibilidad
+  const visited=[dfa.start], seen=new Set(visited);
+  steps.push({title:'AFD original',html:'El AFD tiene <b>'+order.length+'</b> estados: '+fmtSet(order)+'. Estado inicial: <b>'+esc(dfa.start)+'</b>. Finales: '+fmtSet(dfa.finals)+'.',view:{cls:{},edges:[],showMin:false}});
+  for(let qi=0;qi<visited.length;qi++){
+    const u=visited[qi];
+    const tr=A.map(a=>({a,to:dfa.delta[u][a]}));
+    const newly=[];
+    tr.forEach(t=>{if(!seen.has(t.to)){seen.add(t.to);visited.push(t.to);newly.push(t.to);}});
+    const cls={};visited.slice(0,qi+1).forEach(s=>{cls[s]='prev';});cls[u]='active';
+    steps.push({
+      title:'Accesibilidad: visitar '+u,
+      html:'Se visita <b>'+esc(u)+'</b>. Sus transiciones: '+tr.map(t=>'con <code>'+esc(t.a)+'</code> va a <b>'+esc(t.to)+'</b>').join(', ')+'. '+(newly.length?'Estados nuevos encontrados: '+fmtSet(newly)+'.':'No aparecen estados nuevos.'),
+      view:{cls,edges:tr.map(t=>u+KEY+t.to),showMin:false}
+    });
+  }
+  const reach=order.filter(s=>seen.has(s)), unreach=order.filter(s=>!seen.has(s));
+  {
+    const cls={};reach.forEach(s=>{cls[s]='prev';});unreach.forEach(s=>{cls[s]='unreach';});
+    steps.push({
+      title:'Estados inaccesibles',
+      html:unreach.length?'No se pudo llegar a '+fmtSet(unreach)+' desde <b>'+esc(dfa.start)+'</b>, así que '+(unreach.length>1?'son inaccesibles y se eliminan':'es inaccesible y se elimina')+'. Estados que se conservan: '+fmtSet(reach)+'.':'Todos los estados son accesibles desde '+esc(dfa.start)+'; no se elimina ninguno.',
+      view:{cls,edges:[],showMin:false},unreach
+    });
+  }
+  // 2. partición inicial
+  let groups=[reach.filter(s=>!finalsSet.has(s)),reach.filter(s=>finalsSet.has(s))].filter(g=>g.length);
+  const clsOf=gs=>{const c={};unreach.forEach(s=>{c[s]='unreach';});gs.forEach((g,i)=>g.forEach(s=>{c[s]='grp'+(i%6);}));return c;};
+  const pText=gs=>'{ '+gs.map(gname).join(', ')+' }';
+  steps.push({
+    title:'Partición inicial P0',
+    html:'Se separan los estados accesibles en <b>no finales</b> y <b>finales</b>: P0 = <code>'+pText(groups)+'</code>. Estados de distinto tipo nunca pueden ser equivalentes (uno acepta la cadena vacía y el otro no).',
+    view:{cls:clsOf(groups),edges:[],showMin:false}
+  });
+  // 3. refinamiento
+  let round=0;
+  for(;;){
+    round++;
+    const gi={};groups.forEach((g,i)=>g.forEach(s=>{gi[s]=i;}));
+    const next=[], lines=[];
+    groups.forEach(g=>{
+      const sig=new Map();
+      g.forEach(s=>{
+        const k=A.map(a=>gi[dfa.delta[s][a]]).join(',');
+        if(!sig.has(k))sig.set(k,[]);
+        sig.get(k).push(s);
+      });
+      const subs=[...sig.values()];
+      subs.forEach(x=>next.push(x));
+      if(g.length>1){
+        lines.push('<b>Grupo '+gname(g)+'</b>: '+g.map(s=>esc(s)+' → ('+A.map(a=>esc(a)+': '+gname(groups[gi[dfa.delta[s][a]]])).join(', ')+')').join('; ')+' ⇒ '+(subs.length>1?'<b>se separa</b> en '+subs.map(gname).join(' y '):'misma firma, <b>siguen juntos</b>'));
+      }else lines.push('<b>Grupo '+gname(g)+'</b>: tiene un solo estado, no hay nada que separar.');
+    });
+    const changed=next.length!==groups.length;
+    groups=next;
+    steps.push({
+      title:'Refinamiento, ronda '+round,
+      html:'Para cada estado se mira a qué grupo va con cada símbolo (su «firma»). '+lines.join('<br>')+'<br>Resultado: P'+round+' = <code>'+pText(groups)+'</code>. '+(changed?'Hubo cambios, se repite.':'<b>No hubo cambios: la partición es estable.</b>'),
+      view:{cls:clsOf(groups),edges:[],showMin:false}
+    });
+    if(!changed)break;
+    if(round>200)break;
+  }
+  groups.sort((x,y)=>Math.min(...x.map(s=>ord[s]))-Math.min(...y.map(s=>ord[s])));
+  groups=groups.map(g=>g.slice().sort((a,b)=>ord[a]-ord[b]));
+  // 4. equivalentes
+  const eq=groups.filter(g=>g.length>1);
+  steps.push({
+    title:'Estados equivalentes',
+    html:eq.length?eq.map(g=>'Los estados '+fmtSet(g)+' son <b>equivalentes</b>: desde cualquiera se aceptan las mismas cadenas, así que se fusionan en un solo estado.').join('<br>'):'No hay estados equivalentes: cada grupo tiene un solo estado, el AFD ya era mínimo (después de quitar los inaccesibles).',
+    view:{cls:clsOf(groups),edges:[],showMin:false}
+  });
+  // 5. construir mínimo
+  const used=new Set(), gnameId=[];
+  groups.forEach(g=>{
+    let id=g.length===1?g[0]:g.join('');
+    while(used.has(id))id+="'";
+    used.add(id);gnameId.push(id);
+  });
+  const gOf={};groups.forEach((g,i)=>g.forEach(s=>{gOf[s]=i;}));
+  const min={states:gnameId.slice(),alphabet:A,start:gnameId[gOf[dfa.start]],finals:[],delta:{},caption:{}};
+  groups.forEach((g,i)=>{
+    const id=gnameId[i];
+    if(g.length>1)min.caption[id]=gname(g);
+    if(g.some(s=>finalsSet.has(s)))min.finals.push(id);
+    min.delta[id]={};
+    A.forEach(a=>{min.delta[id][a]=gnameId[gOf[dfa.delta[g[0]][a]]];});
+  });
+  steps.push({
+    title:'Construir el AFD minimizado',
+    html:'Cada grupo se convierte en un estado: '+groups.map((g,i)=>'<b>'+esc(gnameId[i])+'</b> = '+gname(g)).join(', ')+'. Estado inicial: <b>'+esc(min.start)+'</b> (contiene a '+esc(dfa.start)+'). Finales: <b>'+esc(min.finals.join(', '))+'</b>. Las transiciones se toman de un representante de cada grupo: '+groups.map((g,i)=>esc(gnameId[i])+' (usando '+esc(g[0])+'): '+A.map(a=>esc(a)+'→'+esc(min.delta[gnameId[i]][a])).join(', ')).join('; ')+'.',
+    view:{cls:clsOf(groups),edges:[],showMin:true}
+  });
+  steps.push({
+    title:'Comparación y resultado',
+    html:'Estados originales: <b>'+order.length+'</b>. Después de quitar inaccesibles: <b>'+reach.length+'</b>. AFD minimizado: <b>'+groups.length+'</b>. '+(unreach.length?'Eliminados por inaccesibles: '+fmtSet(unreach)+'. ':'')+(eq.length?'Fusionados por equivalentes: '+eq.map(fmtSet).join(', ')+'.':'No se fusionó ningún estado.'),
+    view:{cls:clsOf(groups),edges:[],showMin:true},done:true
+  });
+  return {min,steps,groups,unreach,reach,eq};
+}
+
+/* =====================================================================
+   PARTE 2. DIBUJO SVG Y UTILIDADES DE INTERFAZ
+   ===================================================================== */
+function $(id){return document.getElementById(id);}
+
+function nodeRadius(n){return Math.max(22,6*String(n.label||n.id).length+10);}
+function marker(id,color){
+  return '<marker id="'+id+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="'+color+'"/></marker>';
+}
+function distPtSeg(px,py,ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+  let t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;
+  t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));
+}
+
+function autoLayout(ids,edges,start,o){
+  o=o||{};
+  const gx=o.gx||125, gy=o.gy||90;
+  const adj={};ids.forEach(i=>{adj[i]=[];});
+  edges.forEach(e=>{if(adj[e.from]&&adj[e.to]!==undefined&&!adj[e.from].includes(e.to))adj[e.from].push(e.to);});
+  const st={}, post=[], back=new Set();
+  (function dfs(u){
+    st[u]=1;
+    for(const v of adj[u]){
+      if(v===u)continue;
+      if(st[v]===1)back.add(u+KEY+v);
+      else if(!st[v])dfs(v);
+    }
+    st[u]=2;post.push(u);
+  })(start);
+  const topo=post.slice().reverse();
+  const depth={};topo.forEach(u=>{depth[u]=0;});
+  topo.forEach(u=>{for(const v of adj[u]){if(v===u||back.has(u+KEY+v))continue;depth[v]=Math.max(depth[v],depth[u]+1);}});
+  let maxD=0;topo.forEach(u=>{if(depth[u]>maxD)maxD=depth[u];});
+  const layers=[];for(let d=0;d<=maxD;d++)layers.push([]);
+  ids.forEach(i=>{if(st[i])layers[depth[i]].push(i);});
+  const preds={};ids.forEach(i=>{preds[i]=[];});
+  edges.forEach(e=>{if(e.from===e.to||back.has(e.from+KEY+e.to)||!st[e.from]||!preds[e.to])return;preds[e.to].push(e.from);});
+  const yPos={}, pos={};
+  layers.forEach((L,d)=>{
+    const key=n=>{const p=preds[n].filter(q=>yPos[q]!==undefined);return p.length?p.reduce((s,q)=>s+yPos[q],0)/p.length:0;};
+    const idx={};L.forEach((n,i)=>{idx[n]=i;});
+    L.sort((a,b)=>(key(a)-key(b))||(idx[a]-idx[b]));
+    L.forEach((n,i)=>{yPos[n]=(i-(L.length-1)/2)*gy;pos[n]={x:d*gx,y:yPos[n]};});
+  });
+  const un=ids.filter(i=>!st[i]);
+  if(un.length){
+    let maxY=0;Object.keys(pos).forEach(k=>{if(pos[k].y>maxY)maxY=pos[k].y;});
+    un.forEach((n,i)=>{pos[n]={x:i*gx,y:maxY+gy*1.3};});
+  }
+  return pos;
+}
+
+function drawGraph(svg,g){
+  const uid=svg.id||('g'+Math.floor(Math.random()*1e6));
+  svg.innerHTML='';
+  svg.style.maxWidth='';svg.style.minWidth='';
+  const nodes=g.nodes||[];
+  if(!nodes.length){
+    svg.setAttribute('viewBox','0 0 420 90');
+    svg.innerHTML='<text class="emptysvg" x="210" y="48">'+esc(g.empty||'Aún no hay autómata que dibujar')+'</text>';
+    svg.style.maxWidth='420px';
+    return;
+  }
+  const byId={};
+  nodes.forEach(n=>{n.r=n.r||nodeRadius(n);byId[n.id]=n;});
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  const ext=(x,y)=>{if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;};
+  const merged=new Map();
+  (g.edges||[]).forEach(e=>{
+    if(!byId[e.from]||!byId[e.to])return;
+    const k=e.from+KEY+e.to;
+    let m=merged.get(k);
+    if(!m){m={from:e.from,to:e.to,labels:[],active:false,dash:false};merged.set(k,m);}
+    if(!m.labels.includes(e.label))m.labels.push(e.label);
+    if(e.active)m.active=true;
+    if(e.dash)m.dash=true;
+  });
+  let h='<defs>'+marker(uid+'-ar','#64748b')+marker(uid+'-aa','#d97706')+marker(uid+'-ai','#2563eb')+'</defs>';
+  merged.forEach(m=>{
+    const a=byId[m.from],b=byId[m.to];
+    const label=m.labels.join(', ');
+    let d,lx,ly;
+    if(m.from===m.to){
+      const x=a.x,y=a.y,r=a.r;
+      d='M '+(x-r*0.7)+' '+(y-r*0.72)+' C '+(x-r*1.6)+' '+(y-r*2.9)+', '+(x+r*1.6)+' '+(y-r*2.9)+', '+(x+r*0.7)+' '+(y-r*0.72);
+      lx=x;ly=y-r*2.36-9;
+      ext(x-r*1.2,y-r*2.4-18);
+    }else{
+      const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;
+      const hasRev=merged.has(m.to+KEY+m.from);
+      let blocked=false;
+      for(const c of nodes){
+        if(c===a||c===b)continue;
+        if(distPtSeg(c.x,c.y,a.x,a.y,b.x,b.y)<c.r+8){blocked=true;break;}
+      }
+      let off=0;
+      if(hasRev)off-=26;
+      if(blocked)off-=40;
+      const nx=-dy/len,ny=dx/len;
+      const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      const cx=mx+nx*off*2,cy=my+ny*off*2;
+      let ux=cx-a.x,uy=cy-a.y;let ul=Math.hypot(ux,uy)||1;ux/=ul;uy/=ul;
+      const p0x=a.x+ux*a.r,p0y=a.y+uy*a.r;
+      let vx=cx-b.x,vy=cy-b.y;let vl=Math.hypot(vx,vy)||1;vx/=vl;vy/=vl;
+      const p2x=b.x+vx*(b.r+3),p2y=b.y+vy*(b.r+3);
+      d='M '+p0x+' '+p0y+' Q '+cx+' '+cy+' '+p2x+' '+p2y;
+      const bx=0.25*p0x+0.5*cx+0.25*p2x,by=0.25*p0y+0.5*cy+0.25*p2y;
+      if(off!==0){
+        let ox=nx*off,oy=ny*off;const ol=Math.hypot(ox,oy)||1;
+        lx=bx+ox/ol*12;ly=by+oy/ol*12;
+      }else{
+        let px=-dy/len,py=dx/len;
+        if(py>0){px=-px;py=-py;}
+        if(Math.abs(py)<0.3){px=1;py=0;}
+        lx=bx+px*12;ly=by+py*12;
+      }
+      ext(bx,by);
+    }
+    ext(lx-label.length*4-4,ly-9);ext(lx+label.length*4+4,ly+9);
+    h+='<g class="edge'+(m.active?' active':'')+(m.dash?' dash':'')+'"><path d="'+d+'" marker-end="url(#'+uid+(m.active?'-aa':'-ar')+')"/><text class="elabel" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'">'+esc(label)+'</text></g>';
+  });
+  nodes.forEach(n=>{
+    const x=n.x,y=n.y,r=n.r,lab=String(n.label||n.id);
+    ext(x-r,y-r);ext(x+r,y+r+(n.sub?20:4));
+    h+='<g class="node '+(n.cls||'')+'">';
+    if(n.initial){
+      h+='<path class="init" d="M '+(x-r-42)+' '+y+' L '+(x-r-3)+' '+y+'" marker-end="url(#'+uid+'-ai)"/>';
+      ext(x-r-46,y);
+    }
+    h+='<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>';
+    if(n.final)h+='<circle class="inner" cx="'+x+'" cy="'+y+'" r="'+(r-5)+'"/>';
+    h+='<text x="'+x+'" y="'+y+'" font-size="'+(lab.length>3?13:16)+'">'+esc(lab)+'</text>';
+    if(n.sub)h+='<text class="sub" x="'+x+'" y="'+(y+r+13)+'">'+esc(n.sub)+'</text>';
+    h+='</g>';
+  });
+  const pad=16;
+  const w=maxX-minX+pad*2,hh=maxY-minY+pad*2;
+  svg.setAttribute('viewBox',(minX-pad)+' '+(minY-pad)+' '+w+' '+hh);
+  svg.style.maxWidth=Math.max(w,240)+'px';
+  svg.style.minWidth=Math.min(w,680)+'px';
+  svg.innerHTML=h;
+}
+
+/* nodos/aristas desde un AFD o AFND */
+function nodesFrom(auto,extra){
+  return auto.states.map(s=>Object.assign({id:s,initial:s===auto.start,final:auto.finals.includes(s),sub:auto.caption?auto.caption[s]:undefined},extra&&extra[s]||{}));
+}
+function edgesFromNFA(nfa){
+  const out=[];
+  nfa.states.forEach(s=>{Object.keys(nfa.delta[s]).forEach(a=>{nfa.delta[s][a].forEach(t=>out.push({from:s,to:t,label:a}));});});
+  return out;
+}
+function edgesFromDFA(dfa){
+  const out=[];
+  dfa.states.forEach(s=>{dfa.alphabet.forEach(a=>{const t=dfa.delta[s][a];if(t!==undefined)out.push({from:s,to:t,label:a});});});
+  return out;
+}
+function layoutPositions(auto,edges,o){
+  return autoLayout(auto.states,edges,auto.start,o);
+}
+function applyPos(nodes,pos){nodes.forEach(n=>{const p=pos[n.id]||{x:0,y:0};n.x=p.x;n.y=p.y;});}
+
+/* tablas */
+function dfaTableHTML(dfa,hlRow){
+  let h='<table class="tbl"><tr><th class="l">Estado</th>'+dfa.alphabet.map(a=>'<th>'+esc(a)+'</th>').join('')+'</tr>';
+  dfa.states.forEach(s=>{
+    const mark=(s===dfa.start?'→ ':'')+(dfa.finals.includes(s)?'* ':'');
+    h+='<tr'+(hlRow===s?' class="cur"':'')+'><td class="l"><b>'+mark+esc(s)+'</b>'+(dfa.caption&&dfa.caption[s]?' <small>'+esc(dfa.caption[s])+'</small>':'')+'</td>'+dfa.alphabet.map(a=>'<td>'+(dfa.delta[s][a]!==undefined?esc(dfa.delta[s][a]):'—')+'</td>').join('')+'</tr>';
+  });
+  return h+'</table><p class="counter">→ estado inicial · * estado final</p>';
+}
+function nfaTableHTML(nfa){
+  const hasEps=nfa.states.some(s=>nfa.delta[s][EPS]&&nfa.delta[s][EPS].length);
+  const cols=nfa.alphabet.slice();if(hasEps)cols.push(EPS);
+  let h='<table class="tbl"><tr><th class="l">Estado</th>'+cols.map(a=>'<th>'+esc(a)+'</th>').join('')+'</tr>';
+  nfa.states.forEach(s=>{
+    const mark=(s===nfa.start?'→ ':'')+(nfa.finals.includes(s)?'* ':'');
+    h+='<tr><td class="l"><b>'+mark+esc(s)+'</b></td>'+cols.map(a=>'<td>'+fmtSet(nfa.delta[s][a]||[])+'</td>').join('')+'</tr>';
+  });
+  return h+'</table><p class="counter">→ estado inicial · * estado final · ∅ = sin transición</p>';
+}
+function showMsg(el,type,html){
+  el.innerHTML=html?'<div class="msg '+type+'">'+html+'</div>':'';
+}
+function errList(errors){
+  return '<b>Corrige lo siguiente:</b><ul>'+errors.map(e=>'<li>'+e+'</li>').join('')+'</ul>';
+}
+function stepLogHTML(steps,idx){
+  if(idx<0) return '<div class="msg info">Pulsa el botón de ejecutar para ver el algoritmo paso a paso.</div>';
+  return steps.slice(0,idx+1).map((s,i)=>'<div class="step'+(i===idx?' cur':'')+'"><div class="sn">'+(i+1)+'</div><div><b>'+esc(s.title)+'</b><p>'+s.html+'</p></div></div>').join('');
+}
+function scrollLog(el){el.scrollTop=el.scrollHeight;}
+function editorHTML(p,def,rows){
+  return '<div class="ctrlbox"><div class="edgrid">'+
+    '<div><label for="'+p+'_alpha">Alfabeto (separado por comas)</label><input class="inp" id="'+p+'_alpha" value="'+esc(def.alphabet)+'"></div>'+
+    '<div><label for="'+p+'_states">Estados</label><input class="inp" id="'+p+'_states" value="'+esc(def.states)+'"></div>'+
+    '<div><label for="'+p+'_start">Estado inicial</label><input class="inp" id="'+p+'_start" value="'+esc(def.start)+'"></div>'+
+    '<div><label for="'+p+'_finals">Estados finales</label><input class="inp" id="'+p+'_finals" value="'+esc(def.finals)+'"></div>'+
+    '</div><label class="lbl" for="'+p+'_trans" style="display:block;margin-top:8px">Transiciones (una por línea)</label>'+
+    '<textarea class="inp" id="'+p+'_trans" rows="'+rows+'" spellcheck="false">'+esc(def.trans)+'</textarea>'+
+    '<div class="btnrow"><button class="btn primary" id="'+p+'_apply">Aplicar autómata</button><button class="btn ghost" id="'+p+'_restore">Restaurar ejemplo</button></div></div>';
+}
+function readEditor(p){
+  return {alphabet:$(p+'_alpha').value,states:$(p+'_states').value,start:$(p+'_start').value,finals:$(p+'_finals').value,trans:$(p+'_trans').value};
+}
+function writeEditor(p,def){
+  $(p+'_alpha').value=def.alphabet;$(p+'_states').value=def.states;$(p+'_start').value=def.start;$(p+'_finals').value=def.finals;$(p+'_trans').value=def.trans;
+}
+function testTableHTML(rows,showExp,labA,labB){
+  let h='<div class="tblwrap"><table class="tbl"><tr><th>Cadena</th>'+(showExp?'<th>Esperado</th>':'')+'<th>'+labA+'</th>'+(labB?'<th>'+labB+'</th><th>¿Coinciden?</th>':'')+(showExp?'<th>¿Correcto?</th>':'')+'</tr>';
+  rows.forEach(r=>{
+    const t=v=>v?'<td class="okc">aceptada</td>':'<td class="badc">rechazada</td>';
+    h+='<tr><td><b>'+(r.s===''?'ε':esc(r.s))+'</b></td>'+(showExp?'<td>'+(r.exp?'aceptada':'rechazada')+'</td>':'')+t(r.a)+(labB?t(r.b)+'<td>'+(r.a===r.b?'✔':'✘')+'</td>':'')+(showExp?'<td>'+(r.a===r.exp&&(labB?r.b===r.exp:true)?'✔':'✘')+'</td>':'')+'</tr>';
+  });
+  return h+'</table></div>';
+}
+function legendHTML(){
+  const c=(fill,stroke,extra)=>'<svg width="26" height="22" viewBox="0 0 26 22"><circle cx="13" cy="11" r="8" fill="'+fill+'" stroke="'+stroke+'" stroke-width="2"/>'+(extra||'')+'</svg>';
+  return '<span class="lg">'+c('#fff','#2563eb')+' estado normal</span>'+
+    '<span class="lg"><svg width="34" height="22" viewBox="0 0 34 22"><path d="M1 11H11" stroke="#2563eb" stroke-width="2"/><path d="M9 7l4 4-4 4z" fill="#2563eb"/><circle cx="21" cy="11" r="8" fill="#fff" stroke="#2563eb" stroke-width="2"/></svg> estado inicial</span>'+
+    '<span class="lg">'+c('#fff','#2563eb','<circle cx="13" cy="11" r="5" fill="none" stroke="#2563eb" stroke-width="1.5"/>')+' estado final</span>'+
+    '<span class="lg">'+c('#fef3c7','#d97706')+' estado activo</span>'+
+    '<span class="lg"><svg width="34" height="22" viewBox="0 0 34 22"><path d="M2 11H26" stroke="#d97706" stroke-width="3"/><path d="M24 6l7 5-7 5z" fill="#d97706"/></svg> transición activa</span>'+
+    '<span class="lg">'+c('#dcfce7','#15803d')+' aceptación / nuevo</span>'+
+    '<span class="lg">'+c('#fee2e2','#b91c1c')+' rechazo / error</span>';
+}
+
+/* ---------- Simulador genérico para un AFD (módulos 3.1 y 3.5) ---------- */
+function setupDfaSim(cfg){
+  const p=cfg.p, root=$(p+'_sim');
+  root.innerHTML=
+    '<div class="ctrlbox"><label class="lbl" for="'+p+'_input">'+cfg.inputLabel+'</label>'+
+    '<div class="btnrow"><input id="'+p+'_input" class="inp grow" type="text" maxlength="40" autocomplete="off" spellcheck="false" placeholder="'+cfg.placeholder+'"></div>'+
+    '<div class="btnrow"><button class="btn primary" id="'+p+'_start">Iniciar simulación</button><button class="btn" id="'+p+'_next">Siguiente paso</button><button class="btn" id="'+p+'_all">Ejecutar todo</button><button class="btn ghost" id="'+p+'_reset">Reiniciar</button></div>'+
+    '<div class="btnrow"><select id="'+p+'_sel" class="inp"></select><button class="btn" id="'+p+'_load">Cargar ejemplo</button><button class="btn" id="'+p+'_test">Probar todos los ejemplos</button></div>'+
+    '<div class="chips" id="'+p+'_chips"></div><div id="'+p+'_msg"></div></div>'+
+    '<div class="legend" data-legend></div>'+
+    '<div class="graphbox"><svg id="'+p+'_svg" class="graph" role="img" aria-label="Diagrama del autómata"></svg></div>'+
+    '<div class="tape" id="'+p+'_tape"></div><div id="'+p+'_result"></div><div id="'+p+'_log"></div><div id="'+p+'_tests"></div>';
+  const svg=$(p+'_svg'), input=$(p+'_input'), msg=$(p+'_msg');
+  const nodes=cfg.nodes;
+  applyPos(nodes,autoLayout(nodes.map(n=>n.id),cfg.edges,cfg.dfa.start,{gx:cfg.gx||125,gy:90}));
+  let trace=null, idx=0, str='';
+
+  cfg.examples.forEach(e=>{
+    const o=document.createElement('option');o.value=e.s;o.textContent=e.s+'  →  '+(e.exp?'aceptada':'rechazada');$(p+'_sel').appendChild(o);
+    const c=document.createElement('button');c.className='chip '+(e.exp?'ok':'no');c.type='button';c.textContent=e.s;c.title=e.exp?'debe ser aceptada':'debe ser rechazada';
+    c.addEventListener('click',()=>{input.value=e.s;startSim();});
+    $(p+'_chips').appendChild(c);
+  });
+
+  function render(){
+    const hl={node:{},edge:new Set()};
+    let consumed=0,bad=-1,lastRead=-1;
+    if(trace){
+      const st=trace.steps[idx];
+      if(st.kind==='init'){hl.node[st.state]='active';}
+      else if(st.kind==='read'){hl.node[st.from]='prev';hl.node[st.to]='active';hl.edge.add(st.from+KEY+st.to);consumed=st.pos+1;lastRead=st.pos;}
+      else{hl.node[st.from]='bad';consumed=st.pos;bad=st.pos;}
+      if(idx===trace.steps.length-1){
+        const fin=trace.accepted;
+        hl.node[trace.final]=fin?'ok':'bad';
+      }
+    }
+    drawGraph(svg,{
+      nodes:nodes.map(n=>Object.assign({},n,{cls:hl.node[n.id]||''})),
+      edges:cfg.edges.map(e=>Object.assign({},e,{active:hl.edge.has(e.from+KEY+e.to)}))
+    });
+    const chars=Array.from(str);
+    let tp='';
+    if(trace){
+      if(!chars.length)tp='<span class="ch eps">cadena vacía (ε)</span>';
+      chars.forEach((c,i)=>{
+        let cl=i===bad?'bad':(i===lastRead?'cur':(i<consumed?'done':''));
+        tp+='<span class="ch '+cl+'">'+esc(showChar(c))+'<small>'+(i+1)+'</small></span>';
+      });
+    }
+    $(p+'_tape').innerHTML=tp;
+    // bitácora
+    if(!trace){$(p+'_log').innerHTML='';$(p+'_result').innerHTML='';return;}
+    let t='<div class="tblwrap"><table class="tbl"><tr><th>Paso</th><th>Estado actual</th><th>Símbolo leído</th><th>Transición aplicada</th><th>Siguiente estado</th></tr>';
+    trace.steps.slice(0,idx+1).forEach((s,i)=>{
+      const cur=i===idx?' class="cur"':'';
+      if(s.kind==='init')t+='<tr'+cur+'><td>0</td><td>'+esc(s.state)+'</td><td>—</td><td class="l">Se empieza en el estado inicial</td><td>'+esc(s.state)+'</td></tr>';
+      else if(s.kind==='read')t+='<tr'+cur+'><td>'+(s.pos+1)+'</td><td>'+esc(s.from)+'</td><td>'+esc(showChar(s.sym))+'</td><td class="l">δ('+esc(s.from)+', '+esc(showChar(s.sym))+') = '+esc(s.to)+'</td><td>'+esc(s.to)+'</td></tr>';
+      else t+='<tr'+cur+'><td>'+(s.pos+1)+'</td><td>'+esc(s.from)+'</td><td>'+esc(showChar(s.sym))+'</td><td class="l badc">δ('+esc(s.from)+', '+esc(showChar(s.sym))+') no está definida: el autómata se bloquea</td><td>error</td></tr>';
+    });
+    $(p+'_log').innerHTML=t+'</table></div>';
+    const last=idx===trace.steps.length-1;
+    if(last){
+      $(p+'_result').innerHTML='<div class="result '+(trace.accepted?'ok':'bad')+'"><b class="big">'+(trace.accepted?'✔ '+cfg.okWord:'✘ '+cfg.noWord)+'</b><p>'+cfg.explain(trace,str)+'</p></div>';
+    }else{
+      $(p+'_result').innerHTML='<div class="result neutral">Paso '+(idx+1)+' de '+trace.steps.length+'. Pulsa «Siguiente paso» o «Ejecutar todo».</div>';
+    }
+  }
+  function startSim(){
+    const v=cfg.prepare(input.value);
+    if(v.error){showMsg(msg,'err',v.error);trace=null;render();return false;}
+    str=v.value;input.value=str;
+    showMsg(msg,'','');
+    trace=dfaTrace(cfg.dfa,str);idx=0;render();return true;
+  }
+  $(p+'_start').addEventListener('click',startSim);
+  $(p+'_next').addEventListener('click',()=>{
+    if(!trace){showMsg(msg,'info','Primero presiona «Iniciar simulación».');return;}
+    showMsg(msg,'','');
+    if(idx<trace.steps.length-1){idx++;render();}
+    else showMsg(msg,'info','La simulación ya terminó. Usa «Reiniciar» o carga otra cadena.');
+  });
+  $(p+'_all').addEventListener('click',()=>{
+    if(!trace&&!startSim())return;
+    idx=trace.steps.length-1;render();
+  });
+  $(p+'_reset').addEventListener('click',()=>{trace=null;idx=0;str='';showMsg(msg,'','');$(p+'_tests').innerHTML='';render();});
+  input.addEventListener('input',()=>{if(trace){trace=null;idx=0;showMsg(msg,'','');render();}});
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')startSim();});
+  $(p+'_load').addEventListener('click',()=>{input.value=$(p+'_sel').value;trace=null;showMsg(msg,'info','Ejemplo cargado. Presiona «Iniciar simulación».');render();});
+  $(p+'_test').addEventListener('click',()=>{
+    const rows=cfg.examples.map(e=>({s:e.s,exp:e.exp,a:dfaTrace(cfg.dfa,e.s).accepted}));
+    $(p+'_tests').innerHTML='<h4>Resultados de los ejemplos (calculados recorriendo el autómata)</h4>'+testTableHTML(rows,true,'Obtenido');
+  });
+  render();
+}
+
+/* =====================================================================
+   PARTE 3. MÓDULOS
+   ===================================================================== */
+
+/* ---------- Módulo 3.1 ---------- */
+(function(){
+  const dfa={states:['q0','q1'],alphabet:['0','1'],start:'q0',finals:['q1'],delta:{q0:{'0':'q0','1':'q1'},q1:{'0':'q0','1':'q1'}}};
+  $('m1_table').innerHTML=dfaTableHTML(dfa);
+  setupDfaSim({
+    p:'m1',dfa,nodes:nodesFrom(dfa),edges:edgesFromDFA(dfa),
+    inputLabel:'Cadena binaria (solo 0 y 1; vacío = ε):',placeholder:'Ejemplo: 101',
+    okWord:'Cadena aceptada',noWord:'Cadena rechazada',
+    examples:[{s:'101',exp:true},{s:'100',exp:false},{s:'111',exp:true},{s:'0',exp:false}],
+    prepare:v=>{
+      v=v.trim();
+      const m=v.match(/[^01]/);
+      if(m)return {error:'La cadena solo puede contener los símbolos 0 y 1. Revisa el carácter «'+esc(m[0])+'» y corrígelo.'};
+      return {value:v};
+    },
+    explain:(tr,s)=>{
+      if(s==='')return 'La cadena está vacía: no se leyó ningún símbolo, el autómata se queda en q0, que no es final. Por eso se rechaza.';
+      const last=Array.from(s).pop();
+      if(tr.accepted)return 'El autómata terminó en <b>q1</b> (estado final) porque el último símbolo leído fue <b>1</b>. Este AFD acepta únicamente las cadenas que terminan en 1.';
+      return 'El autómata terminó en <b>q0</b>, que no es final, porque el último símbolo leído fue <b>'+esc(last)+'</b>. Este AFD acepta únicamente las cadenas que terminan en 1.';
+    }
+  });
+})();
+
+/* ---------- Módulo 3.2 ---------- */
+(function(){
+  const DEF={alphabet:'a, b',states:'q0, q1',start:'q0',finals:'q1',trans:'q0, a -> q0, q1\nq0, b -> q0'};
+  $('m2_editor').innerHTML=editorHTML('m2',DEF,5);
+  let nfa=null,res=null,steps=[],idx=-1,isDefault=true,nfaPos=null,dfaPos=null;
+  const msg=$('m2_msg'),amsg=$('m2_amsg');
+
+  function drawNFA(svg,hl){
+    hl=hl||{};
+    const act=new Set((hl.edges||[]).map(e=>e.from+KEY+e.to+KEY+e.label));
+    const nodes=nodesFrom(nfa).map(n=>Object.assign(n,{cls:hl.cls&&hl.cls[n.id]||''}));
+    applyPos(nodes,nfaPos);
+    drawGraph(svg,{nodes,edges:edgesFromNFA(nfa).map(e=>Object.assign(e,{active:act.has(e.from+KEY+e.to+KEY+e.label)}))});
+  }
+  function resetAlgo(){
+    res=null;steps=[];idx=-1;showMsg(amsg,'','');
+    drawNFA($('m2_nfasvg2'));
+    drawGraph($('m2_dfasvg'),{nodes:[],empty:'El AFD aparecerá al ejecutar el algoritmo'});
+    $('m2_log').innerHTML=stepLogHTML([],-1);$('m2_result').innerHTML='';
+    $('m2_dfatable').innerHTML='<p class="counter">La tabla aparece al terminar el algoritmo.</p>';
+    $('m2_map').innerHTML='<p class="counter">Se llena al terminar el algoritmo.</p>';
+    $('m2_counter').textContent='';$('m2_testout').innerHTML='';
+  }
+  function applyNFA(){
+    const r=parseSpec(readEditor('m2'),{allowEps:true,deterministic:false});
+    if(!r.ok){showMsg(msg,'err',errList(r.errors));return;}
+    nfa=r.automaton;
+    const cur=readEditor('m2');
+    isDefault=(['alphabet','states','start','finals'].every(k=>cur[k].trim()===DEF[k])&&cur.trans.trim()===DEF.trans);
+    showMsg(msg,'okm','AFND válido: '+nfa.states.length+' estados, alfabeto '+fmtSet(nfa.alphabet)+'. '+(Object.keys(nfa.delta).some(s=>nfa.delta[s][EPS])?'Contiene transiciones ε (el algoritmo calcula el cierre-ε).':'Sin transiciones ε.'));
+    nfaPos=layoutPositions(nfa,edgesFromNFA(nfa));
+    drawNFA($('m2_nfasvg'));
+    $('m2_nfatable').innerHTML=nfaTableHTML(nfa);
+    buildChips();
+    resetAlgo();
+  }
+  function buildChips(){
+    const box=$('m2_chips');box.innerHTML='';
+    if(!isDefault)return;
+    [['ba',true],['aba',true],['abb',false],['bbb',false]].forEach(([s,e])=>{
+      const c=document.createElement('button');c.type='button';c.className='chip '+(e?'ok':'no');c.textContent=s;
+      c.addEventListener('click',()=>{$('m2_in').value=s;probe();});box.appendChild(c);
+    });
+  }
+  function ensureRes(){
+    if(!res){
+      try{res=subsetConstruction(nfa);}catch(e){showMsg(amsg,'err',esc(e.message));return false;}
+      steps=res.steps;
+      const eds=res.dfa.states.map(s=>({id:s}));
+      dfaPos=layoutPositions(res.dfa,edgesFromDFA(res.dfa),{gx:130});
+    }
+    return true;
+  }
+  function render(){
+    if(idx<0){resetAlgoView();return;}
+    const st=steps[idx];
+    const cls={};
+    (st.nfaSt||[]).forEach(s=>{cls[s]=st.nfaSt2?'prev':'active';});
+    (st.nfaSt2||[]).forEach(s=>{cls[s]='active';});
+    drawNFA($('m2_nfasvg2'),{cls,edges:st.nfaEd||[]});
+    const dcls={};
+    if(st.curNode)dcls[st.curNode]='active';
+    if(st.newNode)dcls[st.newNode]='new';
+    const dn=st.dfaNodes.map(name=>{
+      const d=res.dstates.find(x=>x.name===name);
+      return {id:name,initial:name===res.dfa.start,final:st.showFinals&&d.final,sub:res.dfa.caption[name],cls:dcls[name]||''};
+    });
+    applyPos(dn,dfaPos);
+    drawGraph($('m2_dfasvg'),{nodes:dn,edges:st.dfaEdges.map(e=>Object.assign({},e,{active:!!(st.hlEdge&&st.hlEdge.from===e.from&&st.hlEdge.to===e.to)}))});
+    $('m2_log').innerHTML=stepLogHTML(steps,idx);scrollLog($('m2_log'));
+    $('m2_counter').textContent='Paso '+(idx+1)+' de '+steps.length;
+    const last=idx===steps.length-1;
+    if(last){
+      $('m2_dfatable').innerHTML=dfaTableHTML(res.dfa);
+      $('m2_map').innerHTML='<table class="tbl"><tr><th>Estado del AFD</th><th>Conjunto del AFND</th><th>¿Final?</th></tr>'+res.dstates.map(d=>'<tr><td><b>'+d.name+'</b></td><td>'+fmtSet(d.set)+'</td><td>'+(d.final?'sí':'no')+'</td></tr>').join('')+'</table>';
+      $('m2_result').innerHTML='<div class="result ok"><b class="big">AFD construido</b><p>'+st.html+'</p><p>Cada estado del AFD representa un conjunto de estados del AFND. Ahora cada estado tiene exactamente una transición por símbolo: el AFD es determinista. Usa las pruebas de abajo para comprobar que acepta lo mismo que el AFND.</p></div>';
+    }else{
+      $('m2_dfatable').innerHTML='<p class="counter">La tabla aparece al terminar el algoritmo.</p>';
+      $('m2_map').innerHTML='<p class="counter">Se llena al terminar el algoritmo.</p>';
+      $('m2_result').innerHTML='';
+    }
+  }
+  function resetAlgoView(){
+    drawNFA($('m2_nfasvg2'));
+    drawGraph($('m2_dfasvg'),{nodes:[],empty:'El AFD aparecerá al ejecutar el algoritmo'});
+    $('m2_log').innerHTML=stepLogHTML([],-1);$('m2_result').innerHTML='';$('m2_counter').textContent='';
+  }
+  $('m2_apply').addEventListener('click',applyNFA);
+  $('m2_restore').addEventListener('click',()=>{writeEditor('m2',DEF);applyNFA();});
+  $('m2_run').addEventListener('click',()=>{
+    if(!nfa){showMsg(amsg,'err','Primero aplica un AFND válido.');return;}
+    res=null;showMsg(amsg,'','');
+    if(!ensureRes())return;
+    idx=0;render();
+  });
+  $('m2_next').addEventListener('click',()=>{
+    if(idx<0){showMsg(amsg,'info','Primero pulsa «Ejecutar algoritmo».');return;}
+    showMsg(amsg,'','');
+    if(idx<steps.length-1){idx++;render();}else showMsg(amsg,'info','Ya estás en el último paso.');
+  });
+  $('m2_prev').addEventListener('click',()=>{
+    if(idx<0){showMsg(amsg,'info','Primero pulsa «Ejecutar algoritmo».');return;}
+    if(idx>0){idx--;render();}
+  });
+  $('m2_final').addEventListener('click',()=>{
+    if(!nfa)return;
+    if(!res&&!ensureRes())return;
+    idx=steps.length-1;render();
+  });
+  $('m2_reset').addEventListener('click',()=>{res=null;steps=[];idx=-1;showMsg(amsg,'','');resetAlgo();});
+
+  function pathText(tr){
+    return tr.steps.map((s,i)=>i===0?fmtSet(s.set):' —'+esc(s.sym)+'→ '+fmtSet(s.set)).join('');
+  }
+  function probe(){
+    if(!nfa){return;}
+    if(!ensureRes())return;
+    const s=$('m2_in').value.trim();
+    const bad=Array.from(s).find(c=>!nfa.alphabet.includes(c));
+    const t=nfaTrace(nfa,s);
+    const dt=dfaTrace(res.dfa,s);
+    const same=t.accepted===dt.accepted;
+    $('m2_testout').innerHTML=
+      (bad?'<div class="msg info">El símbolo «'+esc(bad)+'» no pertenece al alfabeto '+fmtSet(nfa.alphabet)+', así que ningún camino puede aceptar la cadena.</div>':'')+
+      '<div class="result '+(same?(t.accepted?'ok':'bad'):'bad')+'">'+
+      '<b class="big">Cadena «'+(s===''?'ε':esc(s))+'»: '+(t.accepted?'aceptada':'rechazada')+'</b>'+
+      '<p><b>AFND</b> (conjuntos de estados activos): <code>'+pathText(t)+'</code> ⇒ '+(t.accepted?'contiene un estado final':'no contiene estados finales')+'.</p>'+
+      '<p><b>AFD</b>: <code>'+dt.steps.map((x,i)=>i===0?esc(x.state):x.kind==='read'?' —'+esc(x.sym)+'→ '+esc(x.to):' —'+esc(x.sym)+'→ ✘').join('')+'</code> ⇒ '+(dt.accepted?'termina en un estado final':'no termina en un estado final')+'.</p>'+
+      '<p>'+(same?'✔ Ambos autómatas dan el mismo resultado.':'✘ Los resultados no coinciden (esto no debería ocurrir).')+'</p></div>';
+  }
+  $('m2_probe').addEventListener('click',probe);
+  $('m2_in').addEventListener('keydown',e=>{if(e.key==='Enter')probe();});
+  $('m2_examples').addEventListener('click',()=>{
+    if(!nfa)return;
+    if(!ensureRes())return;
+    const list=isDefault?[['ba',true],['aba',true],['abb',false],['bbb',false]]:['','a','b','ab','ba','aa','bb','aab','abb'].map(s=>[s,null]);
+    const rows=list.map(([s,e])=>({s,exp:e,a:nfaAccepts(nfa,s),b:dfaAccepts(res.dfa,s)}));
+    $('m2_testout').innerHTML='<h4>Resultados'+(isDefault?' de los ejemplos':' de cadenas de prueba')+'</h4>'+testTableHTML(rows,isDefault,'AFND','AFD');
+  });
+  $('m2_compare').addEventListener('click',()=>{
+    if(!nfa)return;
+    if(!ensureRes())return;
+    let L=parseInt($('m2_cmpL').value,10);if(!(L>=1))L=6;if(L>12)L=12;
+    const r=compareLang(s=>nfaAccepts(nfa,s),s=>dfaAccepts(res.dfa,s),nfa.alphabet,L);
+    $('m2_testout').innerHTML=r.mism===null
+      ?'<div class="result ok"><b class="big">✔ Equivalentes</b><p>Se compararon <b>'+r.checked+'</b> cadenas (todas las de longitud 0 a '+r.useL+' sobre '+fmtSet(nfa.alphabet)+') y el AFND y el AFD aceptaron exactamente las mismas.</p></div>'
+      :'<div class="result bad"><b class="big">✘ Diferencia encontrada</b><p>La cadena «'+(r.mism===''?'ε':esc(r.mism))+'» se trata distinto en ambos autómatas.</p></div>';
+  });
+  applyNFA();
+})();
+
+/* ---------- Módulo 3.3 ---------- */
+(function(){
+  const EX=['(a|b)*abb','a|b','ab','a*','(ab)*','a(b|c)*'];
+  const TESTS=[['abb',true],['aabb',true],['babb',true],['abab',false],['ab',false],['baab',false]];
+  EX.forEach(x=>{
+    const c=document.createElement('button');c.type='button';c.className='chip';c.textContent=x;
+    c.addEventListener('click',()=>{$('m3_re').value=x;build();});$('m3_chips').appendChild(c);
+  });
+  let T=null,parsed=null,steps=[],idx=-1,pos=null,isDefault=false;
+  const msg=$('m3_msg');
+  let tTrace=null,tIdx=0,tStr='';
+
+  function graphFor(st){
+    // st: paso (o null para el AFND completo)
+    const final=!st||st.done;
+    const nSt=final?T.nfa.states.length:st.nS;
+    const names=T.nfa.states.slice(0,0);
+    return nSt;
+  }
+  function renderBuild(){
+    const svg=$('m3_svg');
+    if(!T){drawGraph(svg,{nodes:[],empty:'Escribe una expresión y pulsa «Construir AFND»'});return;}
+    const st=steps[idx];
+    let nodes,edges;
+    if(st.kind==='analysis'){
+      drawGraph(svg,{nodes:[],empty:'Todavía no se ha construido ningún fragmento'});
+    }else{
+      const full=st.kind==='result';
+      const allNames=T.nfa.states;
+      let visible;
+      if(full)visible=new Set(allNames);
+      else visible=new Set(T.createdAt.slice(0,st.nS));
+      const newSet=new Set(st.newSt||[]);
+      nodes=allNames.filter(n=>visible.has(n)).map(n=>({id:n,initial:full?n===T.nfa.start:n===st.fragS,final:full?T.nfa.finals.includes(n):n===st.fragF,cls:full?'':(newSet.has(n)?'new':'')}));
+      applyPos(nodes,pos);
+      const ne=full?T.edges.length:st.nE;
+      const e0=full?ne:st.e0;
+      edges=T.edges.slice(0,ne).map((e,i)=>Object.assign({},e,{active:!full&&i>=e0}));
+      drawGraph(svg,{nodes,edges});
+    }
+    $('m3_log').innerHTML=stepLogHTML(steps,idx);scrollLog($('m3_log'));
+    $('m3_counter').textContent='Paso '+(idx+1)+' de '+steps.length;
+    $('m3_result').innerHTML=steps[idx].kind==='result'?'<div class="result ok"><b class="big">AFND construido</b><p>'+steps[idx].html+'</p></div>':'';
+  }
+  function build(){
+    showMsg(msg,'','');
+    let r;
+    try{r=parseRegex($('m3_re').value);}
+    catch(e){
+      if(e instanceof RxError){
+        showMsg(msg,'err',esc(e.message));
+        T=null;steps=[];idx=-1;$('m3_ops').innerHTML='';
+        drawGraph($('m3_svg'),{nodes:[],empty:'No hay AFND: corrige la expresión'});
+        $('m3_log').innerHTML='';$('m3_table').innerHTML='';$('m3_result').innerHTML='';$('m3_counter').textContent='';
+        drawGraph($('m3_tsvg'),{nodes:[],empty:'No hay AFND: corrige la expresión'});
+        resetTest();
+        return;
+      }
+      throw e;
+    }
+    parsed=r;
+    T=thompson(r.ast);
+    // orden de creación: para saber qué estados existen en cada paso
+    const inv=Object.keys(T.name).map(Number).sort((a,b)=>a-b).map(k=>T.name[k]);
+    T.createdAt=inv;
+    isDefault=r.info.clean==='(a|b)*abb';
+    pos=autoLayout(T.nfa.states,T.edges,T.nfa.start,{gx:112,gy:84});
+    const i=r.info;
+    $('m3_ops').innerHTML='<div class="opsbox"><b>Expresión original:</b> <code>'+esc(i.clean)+'</code><br><b>Operadores detectados:</b> '+
+      i.symbols.length+' símbolo(s) de entrada ('+fmtSet(i.alphabet)+'), '+i.unions+' unión(es) <code>|</code>, '+i.concats+' concatenación(es) implícita(s), '+i.stars+' estrella(s) <code>*</code> y '+i.groups+' par(es) de paréntesis.'+
+      '<pre class="tree">'+esc(treeText(r.ast,0))+'</pre></div>';
+    steps=[{kind:'analysis',title:'Análisis de la expresión',html:'La expresión <code>'+esc(i.clean)+'</code> es válida. El analizador sintáctico obtuvo el árbol mostrado arriba (la unión se evalúa al final, después la concatenación, y la estrella se aplica primero). Se construirá un fragmento de Thompson por cada nodo del árbol, de abajo hacia arriba.'}]
+      .concat(T.steps.map(s=>Object.assign({kind:'frag'},s)));
+    steps.push({kind:'result',title:'AFND completo',html:'Estado inicial: <b>'+T.nfa.start+'</b>. Estado de aceptación: <b>'+T.nfa.finals[0]+'</b>. En total: <b>'+T.nfa.states.length+'</b> estados y <b>'+T.edges.length+'</b> transiciones ('+T.epsCount+' son ε). Alfabeto: '+fmtSet(T.nfa.alphabet)+'.',done:true});
+    idx=0;
+    $('m3_table').innerHTML=nfaTableHTML(T.nfa);
+    renderBuild();
+    // área de prueba
+    resetTest();
+    drawTestGraph();
+    buildTestChips();
+  }
+  $('m3_build').addEventListener('click',build);
+  $('m3_re').addEventListener('keydown',e=>{if(e.key==='Enter')build();});
+  $('m3_next').addEventListener('click',()=>{
+    if(!T){showMsg(msg,'info','Primero construye el AFND con una expresión válida.');return;}
+    if(idx<steps.length-1){idx++;renderBuild();}
+  });
+  $('m3_prev').addEventListener('click',()=>{if(T&&idx>0){idx--;renderBuild();}});
+  $('m3_final').addEventListener('click',()=>{if(!T)return;idx=steps.length-1;renderBuild();});
+  $('m3_reset').addEventListener('click',()=>{if(!T)return;idx=0;renderBuild();});
+
+  /* ---- prueba de cadenas ---- */
+  const tmsg=$('m3_tmsg');
+  function tNodes(hl){
+    return T.nfa.states.map(n=>({id:n,initial:n===T.nfa.start,final:T.nfa.finals.includes(n),cls:hl[n]||''}));
+  }
+  function drawTestGraph(hl,edgesAct){
+    if(!T){return;}
+    hl=hl||{};
+    const act=new Set((edgesAct||[]).map(e=>e.from+KEY+e.to+KEY+e.label));
+    const nodes=tNodes(hl);applyPos(nodes,pos);
+    drawGraph($('m3_tsvg'),{nodes,edges:T.edges.map(e=>Object.assign({},e,{active:act.has(e.from+KEY+e.to+KEY+e.label)}))});
+  }
+  function renderTest(){
+    if(!T)return;
+    if(!tTrace){drawTestGraph();$('m3_ttape').innerHTML='';$('m3_tres').innerHTML='';$('m3_tlog').innerHTML='';return;}
+    const st=tTrace.steps[tIdx];
+    const hl={};
+    st.set.forEach(s=>{hl[s]='active';});
+    const last=tIdx===tTrace.steps.length-1;
+    if(last){st.set.forEach(s=>{hl[s]=T.nfa.finals.includes(s)?'ok':(tTrace.accepted?'active':'bad');});}
+    if(last&&!st.set.length){}
+    drawTestGraph(hl,st.used);
+    const chars=Array.from(tStr);
+    let tp='';
+    if(!chars.length)tp='<span class="ch eps">cadena vacía (ε)</span>';
+    chars.forEach((c,i)=>{
+      const consumed=tIdx;
+      tp+='<span class="ch '+(i===tIdx-1?'cur':(i<tIdx-1?'done':''))+'">'+esc(showChar(c))+'<small>'+(i+1)+'</small></span>';
+    });
+    $('m3_ttape').innerHTML=tp;
+    let t='<div class="tblwrap"><table class="tbl"><tr><th>Paso</th><th>Símbolo</th><th>Estados antes</th><th>mover(S, símbolo)</th><th>cierre-ε → estados activos</th></tr>';
+    tTrace.steps.slice(0,tIdx+1).forEach((s,i)=>{
+      const cur=i===tIdx?' class="cur"':'';
+      if(s.kind==='init')t+='<tr'+cur+'><td>0</td><td>—</td><td>—</td><td>—</td><td class="l">cierre-ε({'+T.nfa.start+'}) = '+fmtSet(s.set)+'</td></tr>';
+      else t+='<tr'+cur+'><td>'+(s.pos+1)+'</td><td>'+esc(showChar(s.sym))+(s.unknown?' <small>(fuera del alfabeto)</small>':'')+'</td><td>'+fmtSet(s.from)+'</td><td>'+fmtSet(s.moved)+'</td><td class="l">'+fmtSet(s.set)+'</td></tr>';
+    });
+    $('m3_tlog').innerHTML=t+'</table></div>';
+    if(last){
+      const fin=T.nfa.finals[0];
+      let why;
+      if(tTrace.accepted)why='Al terminar la cadena, el conjunto de estados activos '+fmtSet(tTrace.final)+' contiene el estado de aceptación <b>'+fin+'</b>, así que hay al menos un camino que acepta la cadena.';
+      else if(!tTrace.final.length)why='El conjunto de estados activos quedó vacío (∅): ningún camino del AFND puede seguir leyendo esta cadena.';
+      else why='Al terminar la cadena, los estados activos '+fmtSet(tTrace.final)+' no incluyen el estado de aceptación <b>'+fin+'</b>.';
+      $('m3_tres').innerHTML='<div class="result '+(tTrace.accepted?'ok':'bad')+'"><b class="big">'+(tTrace.accepted?'✔ Cadena aceptada':'✘ Cadena rechazada')+'</b><p>'+why+'</p></div>';
+    }else{
+      $('m3_tres').innerHTML='<div class="result neutral">Paso '+(tIdx+1)+' de '+tTrace.steps.length+'. Los estados resaltados son los que están activos.</div>';
+    }
+  }
+  function startTest(){
+    if(!T){showMsg(tmsg,'err','Primero construye un AFND con una expresión válida.');return false;}
+    tStr=$('m3_in').value.trim();
+    tTrace=nfaTrace(T.nfa,tStr);tIdx=0;showMsg(tmsg,'','');renderTest();return true;
+  }
+  function resetTest(){tTrace=null;tIdx=0;showMsg(tmsg,'','');$('m3_ttests').innerHTML='';renderTest();}
+  function buildTestChips(){
+    const sel=$('m3_tsel'),box=$('m3_tchips');
+    sel.innerHTML='';box.innerHTML='';
+    const list=isDefault?TESTS:[['',null]].concat(['a','b','ab','ba','aab','abb'].map(s=>[s,null]));
+    list.forEach(([s,e])=>{
+      const o=document.createElement('option');o.value=s;o.textContent=(s===''?'ε':s)+(e===null?'':'  →  '+(e?'aceptada':'rechazada'));sel.appendChild(o);
+      if(s!==''){
+        const c=document.createElement('button');c.type='button';c.className='chip'+(e===null?'':(e?' ok':' no'));c.textContent=s;
+        c.addEventListener('click',()=>{$('m3_in').value=s;startTest();});box.appendChild(c);
+      }
+    });
+  }
+  $('m3_tstart').addEventListener('click',startTest);
+  $('m3_tnext').addEventListener('click',()=>{
+    if(!tTrace){showMsg(tmsg,'info','Primero presiona «Iniciar prueba».');return;}
+    if(tIdx<tTrace.steps.length-1){tIdx++;renderTest();}else showMsg(tmsg,'info','La prueba ya terminó.');
+  });
+  $('m3_tall').addEventListener('click',()=>{if(!tTrace&&!startTest())return;tIdx=tTrace.steps.length-1;renderTest();});
+  $('m3_treset').addEventListener('click',resetTest);
+  $('m3_in').addEventListener('input',()=>{if(tTrace){tTrace=null;renderTest();}});
+  $('m3_in').addEventListener('keydown',e=>{if(e.key==='Enter')startTest();});
+  $('m3_tload').addEventListener('click',()=>{$('m3_in').value=$('m3_tsel').value;tTrace=null;renderTest();showMsg(tmsg,'info','Ejemplo cargado. Presiona «Iniciar prueba».');});
+  $('m3_ttestall').addEventListener('click',()=>{
+    if(!T){showMsg(tmsg,'err','Primero construye un AFND con una expresión válida.');return;}
+    const list=isDefault?TESTS:[['',null]].concat(['a','b','ab','ba','aab','abb'].map(s=>[s,null]));
+    const rows=list.map(([s,e])=>({s,exp:e,a:nfaTrace(T.nfa,s).accepted}));
+    $('m3_ttests').innerHTML='<h4>Resultados'+(isDefault?' de los ejemplos':' de cadenas de prueba')+' (recorriendo el AFND)</h4>'+testTableHTML(rows,isDefault,'Obtenido');
+  });
+  build();
+})();
+
+/* ---------- Módulo 3.4 ---------- */
+(function(){
+  const DEF={alphabet:'0, 1',states:'A, B, C, D',start:'A',finals:'C',trans:'A, 0 -> B\nA, 1 -> C\nB, 0 -> B\nB, 1 -> C\nC, 0 -> B\nC, 1 -> C\nD, 0 -> D\nD, 1 -> D'};
+  $('m4_editor').innerHTML=editorHTML('m4',DEF,8);
+  let dfa=null,res=null,steps=[],idx=-1,isDefault=true,oPos=null,mPos=null;
+  const msg=$('m4_msg');
+
+  function drawOrig(svg,cls,act){
+    const a=new Set(act||[]);
+    const nodes=nodesFrom(dfa).map(n=>Object.assign(n,{cls:cls&&cls[n.id]||''}));
+    applyPos(nodes,oPos);
+    drawGraph(svg,{nodes,edges:edgesFromDFA(dfa).map(e=>Object.assign(e,{active:a.has(e.from+KEY+e.to)}))});
+  }
+  function drawMin(show){
+    const svg=$('m4_msvg');
+    if(!show||!res){drawGraph(svg,{nodes:[],empty:'El AFD minimizado aparece al final del algoritmo'});return;}
+    const nodes=nodesFrom(res.min);applyPos(nodes,mPos);
+    drawGraph(svg,{nodes,edges:edgesFromDFA(res.min)});
+  }
+  function resetAlgo(){
+    res=null;steps=[];idx=-1;
+    drawOrig($('m4_osvg2'));drawMin(false);
+    $('m4_log').innerHTML=stepLogHTML([],-1);$('m4_result').innerHTML='';$('m4_counter').textContent='';
+    $('m4_mtable').innerHTML='<p class="counter">La tabla aparece al terminar la minimización.</p>';
+    $('m4_testout').innerHTML='';
+  }
+  function applyDFA(){
+    const r=parseSpec(readEditor('m4'),{allowEps:false,deterministic:true});
+    if(!r.ok){showMsg(msg,'err',errList(r.errors));return;}
+    dfa=r.automaton;
+    const cur=readEditor('m4');
+    isDefault=(['alphabet','states','start','finals'].every(k=>cur[k].trim()===DEF[k])&&cur.trans.trim()===DEF.trans);
+    showMsg(msg,'okm','AFD válido y completo: '+dfa.states.length+' estados, alfabeto '+fmtSet(dfa.alphabet)+'.');
+    oPos=layoutPositions(dfa,edgesFromDFA(dfa));
+    drawOrig($('m4_osvg'));
+    $('m4_otable').innerHTML=dfaTableHTML(dfa);
+    const box=$('m4_chips');box.innerHTML='';
+    if(isDefault)[['1',true],['01',true],['00',false],['1010',false]].forEach(([s,e])=>{
+      const c=document.createElement('button');c.type='button';c.className='chip '+(e?'ok':'no');c.textContent=s;
+      c.addEventListener('click',()=>{$('m4_in').value=s;probe();});box.appendChild(c);
+    });
+    resetAlgo();
+  }
+  function ensureRes(){
+    if(!res){
+      res=minimizeDFA(dfa);steps=res.steps;
+      mPos=layoutPositions(res.min,edgesFromDFA(res.min),{gx:140});
+    }
+  }
+  function render(){
+    const st=steps[idx];
+    drawOrig($('m4_osvg2'),st.view.cls,st.view.edges);
+    drawMin(st.view.showMin);
+    $('m4_log').innerHTML=stepLogHTML(steps,idx);scrollLog($('m4_log'));
+    $('m4_counter').textContent='Paso '+(idx+1)+' de '+steps.length;
+    if(st.done){
+      $('m4_mtable').innerHTML=dfaTableHTML(res.min);
+      $('m4_result').innerHTML='<div class="result ok"><b class="big">AFD minimizado: '+dfa.states.length+' → '+res.min.states.length+' estados</b><p>'+st.html+'</p><p>Explicación sencilla: los estados que se comportan exactamente igual se juntan en uno solo, y los que nunca se pueden alcanzar se tiran. El autómata queda más pequeño, pero acepta las mismas cadenas.</p></div>';
+    }else{
+      $('m4_mtable').innerHTML='<p class="counter">La tabla aparece al terminar la minimización.</p>';
+      $('m4_result').innerHTML='';
+    }
+  }
+  $('m4_apply').addEventListener('click',applyDFA);
+  $('m4_restore').addEventListener('click',()=>{writeEditor('m4',DEF);applyDFA();});
+  $('m4_run').addEventListener('click',()=>{if(!dfa)return;res=null;ensureRes();idx=0;render();});
+  $('m4_next').addEventListener('click',()=>{
+    if(idx<0){showMsg($('m4_msg'),'info','Primero pulsa «Ejecutar minimización».');return;}
+    if(idx<steps.length-1){idx++;render();}
+  });
+  $('m4_prev').addEventListener('click',()=>{if(idx<0){showMsg($('m4_msg'),'info','Primero pulsa «Ejecutar minimización».');return;}if(idx>0){idx--;render();}});
+  $('m4_final').addEventListener('click',()=>{if(!dfa)return;ensureRes();idx=steps.length-1;render();});
+  $('m4_reset').addEventListener('click',resetAlgo);
+
+  function probe(){
+    if(!dfa)return;
+    ensureRes();
+    const s=$('m4_in').value.trim();
+    const bad=Array.from(s).find(c=>!dfa.alphabet.includes(c));
+    const a=dfaTrace(dfa,s),b=dfaTrace(res.min,s);
+    const same=a.accepted===b.accepted;
+    const path=t=>t.steps.map((x,i)=>i===0?esc(x.state):' —'+esc(x.sym)+'→ '+(x.kind==='read'?esc(x.to):'✘')).join('');
+    $('m4_testout').innerHTML=(bad?'<div class="msg info">El símbolo «'+esc(bad)+'» no pertenece al alfabeto '+fmtSet(dfa.alphabet)+': el autómata se bloquea y rechaza.</div>':'')+
+      '<div class="result '+(a.accepted?'ok':'bad')+'"><b class="big">Cadena «'+(s===''?'ε':esc(s))+'»: '+(a.accepted?'aceptada':'rechazada')+'</b>'+
+      '<p><b>AFD original</b>: <code>'+path(a)+'</code> ⇒ '+(a.accepted?'estado final':'no es estado final')+'.</p>'+
+      '<p><b>AFD minimizado</b>: <code>'+path(b)+'</code> ⇒ '+(b.accepted?'estado final':'no es estado final')+'.</p>'+
+      '<p>'+(same?'✔ Ambos autómatas coinciden.':'✘ No coinciden (no debería ocurrir).')+'</p></div>';
+  }
+  $('m4_probe').addEventListener('click',probe);
+  $('m4_in').addEventListener('keydown',e=>{if(e.key==='Enter')probe();});
+  $('m4_examples').addEventListener('click',()=>{
+    if(!dfa)return;ensureRes();
+    const list=isDefault?[['1',true],['01',true],['00',false],['1010',false]]:['','0','1','00','01','10','11','101'].map(s=>[s,null]);
+    const rows=list.map(([s,e])=>({s,exp:e,a:dfaAccepts(dfa,s),b:dfaAccepts(res.min,s)}));
+    $('m4_testout').innerHTML='<h4>Resultados'+(isDefault?' de los ejemplos':' de cadenas de prueba')+'</h4>'+testTableHTML(rows,isDefault,'AFD original','AFD minimizado');
+  });
+  $('m4_compare').addEventListener('click',()=>{
+    if(!dfa)return;ensureRes();
+    let L=parseInt($('m4_cmpL').value,10);if(!(L>=1))L=6;if(L>12)L=12;
+    const r=compareLang(s=>dfaAccepts(dfa,s),s=>dfaAccepts(res.min,s),dfa.alphabet,L);
+    $('m4_testout').innerHTML=r.mism===null
+      ?'<div class="result ok"><b class="big">✔ Mismo lenguaje</b><p>Se compararon <b>'+r.checked+'</b> cadenas (longitud 0 a '+r.useL+') y ambos autómatas aceptaron exactamente las mismas.</p></div>'
+      :'<div class="result bad"><b class="big">✘ Diferencia encontrada</b><p>La cadena «'+(r.mism===''?'ε':esc(r.mism))+'» se trata distinto.</p></div>';
+  });
+  applyDFA();
+})();
+
+/* ---------- Módulo 3.5 ---------- */
+(function(){
+  const digits='0123456789'.split('');
+  const states=['q0','q1','q2','q3','q4','q5','q6'];
+  const delta={};states.forEach(s=>{delta[s]={};});
+  delta.q0.P='q1';delta.q1.K='q2';
+  digits.forEach(d=>{delta.q2[d]='q3';delta.q3[d]='q4';delta.q4[d]='q5';delta.q5[d]='q6';});
+  const dfa={states,alphabet:['P','K'].concat(digits),start:'q0',finals:['q6'],delta};
+  const edges=[{from:'q0',to:'q1',label:'P'},{from:'q1',to:'q2',label:'K'},{from:'q2',to:'q3',label:'0-9'},{from:'q3',to:'q4',label:'0-9'},{from:'q4',to:'q5',label:'0-9'},{from:'q5',to:'q6',label:'0-9'}];
+  const need={q0:'la letra <b>P</b>',q1:'la letra <b>K</b>',q2:'un dígito (0-9)',q3:'un dígito (0-9)',q4:'un dígito (0-9)',q5:'un dígito (0-9)'};
+  $('m5_table').innerHTML='<h4>Tabla de transiciones (— = error implícito)</h4><table class="tbl"><tr><th class="l">Estado</th><th>P</th><th>K</th><th>0-9</th><th>Significado</th></tr>'+
+    '<tr><td class="l"><b>→ q0</b></td><td>q1</td><td>—</td><td>—</td><td class="l">espera P</td></tr>'+
+    '<tr><td class="l"><b>q1</b></td><td>—</td><td>q2</td><td>—</td><td class="l">espera K</td></tr>'+
+    '<tr><td class="l"><b>q2</b></td><td>—</td><td>—</td><td>q3</td><td class="l">1.er dígito</td></tr>'+
+    '<tr><td class="l"><b>q3</b></td><td>—</td><td>—</td><td>q4</td><td class="l">2.º dígito</td></tr>'+
+    '<tr><td class="l"><b>q4</b></td><td>—</td><td>—</td><td>q5</td><td class="l">3.er dígito</td></tr>'+
+    '<tr><td class="l"><b>q5</b></td><td>—</td><td>—</td><td>q6</td><td class="l">4.º dígito</td></tr>'+
+    '<tr><td class="l"><b>* q6</b></td><td>—</td><td>—</td><td>—</td><td class="l">código completo (final)</td></tr></table>';
+  setupDfaSim({
+    p:'m5',dfa,nodes:nodesFrom(dfa),edges,gx:112,
+    inputLabel:'Código de paquete (formato: PK + 4 dígitos):',placeholder:'Ejemplo: PK1234',
+    okWord:'Código válido',noWord:'Código inválido',
+    examples:[{s:'PK1234',exp:true},{s:'PK0001',exp:true},{s:'PK12A4',exp:false},{s:'PK123',exp:false},{s:'PK12345',exp:false},{s:'XP1234',exp:false}],
+    prepare:v=>{
+      v=v.trim();
+      if(!v)return {error:'Escribe un código de paquete (por ejemplo PK1234) o elige uno de los ejemplos.'};
+      return {value:v};
+    },
+    explain:(tr,s)=>{
+      const last=tr.steps[tr.steps.length-1];
+      if(tr.accepted)return 'El código empieza con <b>P</b>, sigue una <b>K</b> y después tiene exactamente <b>4 dígitos</b>. El autómata llegó a <b>q6</b> (estado final) justo al terminar y no sobraron caracteres. Es un código de paquete válido.';
+      if(last.kind==='stuck'){
+        if(last.from==='q6')return 'El código ya tenía sus 4 dígitos (el autómata estaba en <b>q6</b>), pero llegó otro carácter, «'+esc(showChar(last.sym))+'». Desde q6 no existe ninguna transición, así que el código es demasiado largo y se rechaza.';
+        return 'En el estado <b>'+last.from+'</b> se esperaba '+need[last.from]+', pero llegó «'+esc(showChar(last.sym))+'» (posición '+(last.pos+1)+'). No existe esa transición, así que el autómata se bloquea y rechaza el código.';
+      }
+      return 'El código terminó cuando el autómata estaba en <b>'+tr.final+'</b>, que no es un estado final: faltan caracteres (se necesitan P, K y exactamente 4 dígitos).';
+    }
+  });
+})();
+
+/* =====================================================================
+   PARTE 4. NAVEGACIÓN, LEYENDAS Y FOTOGRAFÍA
+   ===================================================================== */
+document.querySelectorAll('[data-legend]').forEach(el=>{el.innerHTML=legendHTML();});
+
+function go(id){
+  const target=document.getElementById(id);
+  if(!target||!target.classList.contains('module'))id='home';
+  document.querySelectorAll('.module').forEach(m=>m.classList.toggle('active',m.id===id));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  window.scrollTo(0,0);
+  try{history.replaceState(null,'','#'+id);}catch(e){}
+}
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+if(location.hash&&location.hash.length>1)go(location.hash.slice(1));
+
+(function(){
+  // Para dejar la foto incrustada en el archivo, pega aquí su data URI (data:image/jpeg;base64,...)
+  const FOTO_INCRUSTADA='';
+  const img=$('foto'),vacia=$('fotoVacia'),inp=$('fotoInput'),fm=$('fotoMsg');
+  function mostrar(src){img.src=src;img.style.display='block';vacia.style.display='none';}
+  function quitar(){img.removeAttribute('src');img.style.display='none';vacia.style.display='block';}
+  let guardada=null;
+  try{guardada=localStorage.getItem('foto_isai_24500259');}catch(e){}
+  if(FOTO_INCRUSTADA)mostrar(FOTO_INCRUSTADA);else if(guardada)mostrar(guardada);
+  inp.addEventListener('change',()=>{
+    const f=inp.files&&inp.files[0];
+    if(!f)return;
+    if(!/^image\//.test(f.type)){showMsg(fm,'err','El archivo elegido no es una imagen. Selecciona un archivo JPG o PNG.');return;}
+    const r=new FileReader();
+    r.onload=()=>{mostrar(r.result);showMsg(fm,'','');try{localStorage.setItem('foto_isai_24500259',r.result);}catch(e){}};
+    r.onerror=()=>showMsg(fm,'err','No se pudo leer la imagen. Intenta con otro archivo.');
+    r.readAsDataURL(f);
+    inp.value='';
+  });
+  $('fotoQuitar').addEventListener('click',()=>{quitar();try{localStorage.removeItem('foto_isai_24500259');}catch(e){}});
+})();
+</script>
+</body>
+</html>
